@@ -177,24 +177,19 @@ def send_verification_code(email, code):
         
         print(f"嘗試發送驗證碼 {code} 至 {email}", file=sys.stderr)
         
-        # 嘗試使用 PythonAnywhere API 發送郵件
-        api_result = send_email_via_pythonanywhere_api(email, subject, body)
+        # 使用 Flask-Mail 發送郵件
+        msg = Message(
+            subject=subject,
+            recipients=[email],
+            body=body,
+            sender=current_app.config['MAIL_DEFAULT_SENDER']
+        )
         
-        # 如果 API 發送失敗，則嘗試使用傳統方式發送
-        if not api_result:
-            print(f"使用 PythonAnywhere API 發送失敗，嘗試使用傳統方式發送...", file=sys.stderr)
-            msg = Message(
-                subject=subject,
-                recipients=[email],
-                body=body,
-                sender=current_app.config['MAIL_DEFAULT_SENDER']
-            )
-            
-            # 在背景執行緒中發送電子郵件，避免阻塞主執行緒
-            threading.Thread(
-                target=send_email_async,
-                args=(current_app._get_current_object(), msg)
-            ).start()
+        # 在背景執行緒中發送電子郵件，避免阻塞主執行緒
+        threading.Thread(
+            target=send_email_async,
+            args=(current_app._get_current_object(), msg)
+        ).start()
         
         # 立即返回成功，不等待電子郵件實際發送完成
         return True
