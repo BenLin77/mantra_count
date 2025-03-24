@@ -23,54 +23,64 @@ def send_email_async(app, msg):
         msg: 電子郵件訊息
     """
     with app.app_context():
+        # 直接使用 smtplib 發送郵件，跳過 Flask-Mail
         try:
-            mail.send(msg)
-            print(f"已成功發送電子郵件至 {msg.recipients}", file=sys.stderr)
+            print(f"直接使用 smtplib 發送電子郵件至 {msg.recipients}...", file=sys.stderr)
+            start_time = time.time()
+            
+            smtp_server = app.config['MAIL_SERVER']
+            port = app.config['MAIL_PORT']
+            use_ssl = app.config['MAIL_USE_SSL']
+            sender_email = app.config['MAIL_USERNAME']
+            password = app.config['MAIL_PASSWORD']
+            
+            # 創建安全連接
+            context = ssl.create_default_context()
+            
+            # 創建 MIME 郵件
+            mime_msg = MIMEMultipart()
+            mime_msg['From'] = sender_email
+            mime_msg['To'] = ', '.join(msg.recipients)
+            mime_msg['Subject'] = Header(msg.subject, 'utf-8')
+            mime_msg.attach(MIMEText(msg.body, 'plain', 'utf-8'))
+            
+            # 設置較短的超時時間
+            socket.setdefaulttimeout(15)  # 縮短超時時間
+            
+            # 連接到郵件服務器
+            print(f"連接到郵件服務器 {smtp_server}:{port}...", file=sys.stderr)
+            if use_ssl:
+                server = smtplib.SMTP_SSL(smtp_server, port, timeout=15, context=context)
+            else:
+                server = smtplib.SMTP(smtp_server, port, timeout=15)
+                server.ehlo()
+                server.starttls(context=context)
+                server.ehlo()
+            
+            # 登入
+            print(f"登入郵件服務器 ({sender_email})...", file=sys.stderr)
+            server.login(sender_email, password)
+            
+            # 發送郵件
+            print(f"發送郵件至 {msg.recipients}...", file=sys.stderr)
+            server.sendmail(sender_email, msg.recipients, mime_msg.as_string())
+            server.quit()
+            
+            end_time = time.time()
+            print(f"郵件發送完成，耗時: {end_time - start_time:.2f} 秒", file=sys.stderr)
+            print(f"成功發送電子郵件至 {msg.recipients}", file=sys.stderr)
+            
         except Exception as e:
             print(f"發送電子郵件失敗: {str(e)}", file=sys.stderr)
-            # 嘗試使用 smtplib 直接發送
+            print(f"錯誤類型: {type(e).__name__}", file=sys.stderr)
+            
+            # 嘗試使用 Flask-Mail 作為備選方案
             try:
-                print(f"嘗試使用 smtplib 直接發送電子郵件...", file=sys.stderr)
-                smtp_server = app.config['MAIL_SERVER']
-                port = app.config['MAIL_PORT']
-                use_ssl = app.config['MAIL_USE_SSL']
-                sender_email = app.config['MAIL_USERNAME']
-                password = app.config['MAIL_PASSWORD']
-                
-                # 創建安全連接
-                context = ssl.create_default_context()
-                
-                # 創建 MIME 郵件
-                mime_msg = MIMEMultipart()
-                mime_msg['From'] = sender_email
-                mime_msg['To'] = ', '.join(msg.recipients)
-                mime_msg['Subject'] = Header(msg.subject, 'utf-8')
-                mime_msg.attach(MIMEText(msg.body, 'plain', 'utf-8'))
-                
-                # 設置超時時間
-                socket.setdefaulttimeout(30)
-                
-                # 連接到郵件服務器
-                print(f"連接到郵件服務器 {smtp_server}:{port}...", file=sys.stderr)
-                if use_ssl:
-                    server = smtplib.SMTP_SSL(smtp_server, port, timeout=30, context=context)
-                else:
-                    server = smtplib.SMTP(smtp_server, port, timeout=30)
-                    server.ehlo()
-                    server.starttls(context=context)
-                    server.ehlo()
-                
-                # 登入
-                print(f"登入郵件服務器 ({sender_email})...", file=sys.stderr)
-                server.login(sender_email, password)
-                
-                # 發送郵件
-                print(f"發送郵件至 {msg.recipients}...", file=sys.stderr)
-                server.sendmail(sender_email, msg.recipients, mime_msg.as_string())
-                server.quit()
-                print(f"使用 smtplib 成功發送電子郵件至 {msg.recipients}", file=sys.stderr)
-            except Exception as smtp_error:
-                print(f"使用 smtplib 發送電子郵件失敗: {str(smtp_error)}", file=sys.stderr)
+                print(f"嘗試使用 Flask-Mail 發送電子郵件...", file=sys.stderr)
+                mail.send(msg)
+                print(f"使用 Flask-Mail 成功發送電子郵件至 {msg.recipients}", file=sys.stderr)
+            except Exception as mail_error:
+                print(f"使用 Flask-Mail 發送電子郵件失敗: {str(mail_error)}", file=sys.stderr)
 
 def send_email_via_pythonanywhere_api(recipient, subject, message):
     """
