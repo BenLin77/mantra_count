@@ -11,6 +11,8 @@ import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+import requests
+import os
 
 def send_email_async(app, msg):
     """
@@ -70,6 +72,54 @@ def send_email_async(app, msg):
             except Exception as smtp_error:
                 print(f"使用 smtplib 發送電子郵件失敗: {str(smtp_error)}", file=sys.stderr)
 
+def send_email_via_pythonanywhere_api(recipient, subject, message):
+    """
+    使用 PythonAnywhere API 發送電子郵件
+    
+    Args:
+        recipient (str): 收件人電子郵件地址
+        subject (str): 郵件主題
+        message (str): 郵件內容
+        
+    Returns:
+        bool: 發送成功返回 True，否則返回 False
+    """
+    try:
+        # 從環境變數或配置中獲取 API 令牌和用戶名
+        api_token = os.environ.get('PYTHONANYWHERE_API_TOKEN') or current_app.config.get('PYTHONANYWHERE_API_TOKEN')
+        username = os.environ.get('PYTHONANYWHERE_USERNAME') or current_app.config.get('PYTHONANYWHERE_USERNAME', 'mantra')
+        
+        if not api_token:
+            print("缺少 PYTHONANYWHERE_API_TOKEN 環境變數或配置項", file=sys.stderr)
+            return False
+            
+        # 準備請求數據
+        data = {
+            'recipient': recipient,
+            'subject': subject,
+            'message': message
+        }
+        
+        # 發送 API 請求
+        print(f"使用 PythonAnywhere API 發送郵件至 {recipient}...", file=sys.stderr)
+        response = requests.post(
+            f'https://www.pythonanywhere.com/api/v0/user/{username}/mail/',
+            headers={'Authorization': f'Token {api_token}'},
+            json=data
+        )
+        
+        # 檢查回應
+        if response.status_code == 200:
+            print(f"使用 PythonAnywhere API 成功發送郵件至 {recipient}", file=sys.stderr)
+            return True
+        else:
+            print(f"使用 PythonAnywhere API 發送郵件失敗: {response.text}", file=sys.stderr)
+            return False
+            
+    except Exception as e:
+        print(f"使用 PythonAnywhere API 發送郵件時發生錯誤: {str(e)}", file=sys.stderr)
+        return False
+
 def send_verification_code(email, code):
     """
     發送驗證碼電子郵件
@@ -108,21 +158,26 @@ def send_verification_code(email, code):
         print(f"MAIL_USERNAME: {current_app.config.get('MAIL_USERNAME')}", file=sys.stderr)
         print(f"MAIL_DEFAULT_SENDER: {current_app.config.get('MAIL_DEFAULT_SENDER')}", file=sys.stderr)
         
-        # 不再使用測試模式，直接發送電子郵件
         print(f"嘗試發送驗證碼 {code} 至 {email}", file=sys.stderr)
         
-        msg = Message(
-            subject=subject,
-            recipients=[email],
-            body=body,
-            sender=current_app.config['MAIL_DEFAULT_SENDER']
-        )
+        # 嘗試使用 PythonAnywhere API 發送郵件
+        api_result = send_email_via_pythonanywhere_api(email, subject, body)
         
-        # 在背景執行緒中發送電子郵件，避免阻塞主執行緒
-        threading.Thread(
-            target=send_email_async,
-            args=(current_app._get_current_object(), msg)
-        ).start()
+        # 如果 API 發送失敗，則嘗試使用傳統方式發送
+        if not api_result:
+            print(f"使用 PythonAnywhere API 發送失敗，嘗試使用傳統方式發送...", file=sys.stderr)
+            msg = Message(
+                subject=subject,
+                recipients=[email],
+                body=body,
+                sender=current_app.config['MAIL_DEFAULT_SENDER']
+            )
+            
+            # 在背景執行緒中發送電子郵件，避免阻塞主執行緒
+            threading.Thread(
+                target=send_email_async,
+                args=(current_app._get_current_object(), msg)
+            ).start()
         
         # 立即返回成功，不等待電子郵件實際發送完成
         return True
