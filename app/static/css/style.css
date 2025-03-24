@@ -1,0 +1,109 @@
+/* 全局樣式 */
+body {
+    font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+    background-color: #f8f9fa;
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.footer {
+    margin-top: 2rem;
+    padding: 1rem 0;
+    color: #6c757d;
+    border-top: 1px solid #dee2e6;
+}
+
+/* 卡片樣式 */
+.card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    border: none;
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    font-weight: bold;
+}
+
+/* 按鈕樣式 */
+.btn {
+    border-radius: 0.3rem;
+    padding: 0.375rem 1rem;
+}
+
+.btn-primary {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+}
+
+.btn-primary:hover {
+    background-color: #5a32a3;
+    border-color: #5a32a3;
+}
+
+.btn-outline-primary {
+    color: #6f42c1;
+    border-color: #6f42c1;
+}
+
+.btn-outline-primary:hover {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+}
+
+/* 徽章樣式 */
+.badge-primary {
+    background-color: #6f42c1;
+}
+
+/* 表單樣式 */
+.form-control:focus {
+    border-color: #6f42c1;
+    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+}
+
+/* 梵文樣式 */
+.sanskrit-text {
+    font-family: 'Noto Sans', 'Noto Sans Tibetan', sans-serif;
+    font-size: 1.5rem;
+    line-height: 1.8;
+    color: #6f42c1;
+}
+
+/* 首頁樣式 */
+.jumbotron {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .jumbotron {
+        padding: 1.5rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
+}
+
+/* 動畫效果 */
+.btn, .card {
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+/* 統計數據頁面 */
+.display-4 {
+    font-weight: 300;
+    color: #6f42c1;
+}

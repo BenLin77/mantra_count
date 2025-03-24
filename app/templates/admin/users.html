@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="mb-0">用戶管理</h3>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>用戶名</th>
+                        <th>電子郵件</th>
+                        <th>註冊時間</th>
+                        <th>唸誦總數</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for stat in user_stats %}
+                    <tr>
+                        <td>{{ stat.user.id }}</td>
+                        <td>{{ stat.user.username }}</td>
+                        <td>{{ stat.user.email }}</td>
+                        <td>{{ stat.user.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ stat.count }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.user_detail', id=stat.user.id) }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i> 查看
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <nav aria-label="分頁">
+            <ul class="pagination justify-content-center">
+                {% if users.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.users', page=users.prev_num) }}">上一頁</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">上一頁</span>
+                </li>
+                {% endif %}
+                
+                {% for page_num in users.iter_pages(left_edge=2, right_edge=2, left_current=2, right_current=4) %}
+                    {% if page_num %}
+                        {% if page_num == users.page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.users', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if users.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.users', page=users.next_num) }}">下一頁</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">下一頁</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<a href="{{ url_for('admin.index') }}" class="btn btn-outline-primary">&larr; 返回管理面板</a>
+{% endblock %}

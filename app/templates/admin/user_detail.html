@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="mb-0">用戶詳情 - {{ user.username }}</h3>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">基本資料</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>用戶名：</strong> {{ user.username }}</p>
+                        <p><strong>電子郵件：</strong> {{ user.email }}</p>
+                        <p><strong>註冊時間：</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <p><strong>是否管理員：</strong> {% if user.is_admin %}是{% else %}否{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4>總唸誦次數</h4>
+                        <h1 class="display-4">{{ total_count }}</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">唸誦統計</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>咒語</th>
+                                <th>唸誦次數</th>
+                                <th>佔比</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for stat in stats %}
+                            <tr>
+                                <td>{{ stat.Mantra.name }}</td>
+                                <td>{{ stat.count }}</td>
+                                <td>
+                                    {% if total_count > 0 %}
+                                    {{ "%.2f"|format(stat.count / total_count * 100) }}%
+                                    {% else %}
+                                    0%
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">最近唸誦記錄</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>咒語</th>
+                                <th>唸誦次數</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in recent_records %}
+                            <tr>
+                                <td>{{ record.record_date.strftime('%Y-%m-%d') }}</td>
+                                <td>{{ record.mantra.name }}</td>
+                                <td>{{ record.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mb-4">
+    <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary">&larr; 返回用戶列表</a>
+    <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">返回管理面板</a>
+</div>
+{% endblock %}

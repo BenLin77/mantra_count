@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h3 class="mb-0">咒語管理</h3>
+        <a href="{{ url_for('admin.create_mantra') }}" class="btn btn-success">新增咒語</a>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>名稱</th>
+                        <th>中文音譯</th>
+                        <th>創建時間</th>
+                        <th>預設</th>
+                        <th>總唸誦次數</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mantra in mantras.items %}
+                    <tr>
+                        <td>{{ mantra.id }}</td>
+                        <td>{{ mantra.name }}</td>
+                        <td>{{ mantra.chinese }}</td>
+                        <td>{{ mantra.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            {% if mantra.is_default %}
+                            <span class="badge badge-primary">是</span>
+                            {% else %}
+                            <span class="badge badge-secondary">否</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ mantra.get_total_count() }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('main.mantra_detail', id=mantra.id) }}" class="btn btn-sm btn-info">查看</a>
+                                <a href="{{ url_for('admin.edit_mantra', id=mantra.id) }}" class="btn btn-sm btn-warning">編輯</a>
+                                {% if not mantra.is_default %}
+                                <a href="{{ url_for('admin.delete_mantra', id=mantra.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('確定要刪除此咒語嗎？所有相關的唸誦記錄也將被刪除。')">刪除</a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <nav aria-label="分頁">
+            <ul class="pagination justify-content-center">
+                {% if mantras.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.mantras', page=mantras.prev_num) }}">上一頁</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">上一頁</span>
+                </li>
+                {% endif %}
+                
+                {% for page_num in mantras.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                    {% if page_num %}
+                        {% if mantras.page == page_num %}
+                        <li class="page-item active">
+                            <span class="page-link">
+                                {{ page_num }}
+                                <span class="sr-only">(當前)</span>
+                            </span>
+                        </li>
+                        {% else %}
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('admin.mantras', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                        {% endif %}
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if mantras.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.mantras', page=mantras.next_num) }}">下一頁</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">下一頁</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>
+
+<a href="{{ url_for('admin.index') }}" class="btn btn-outline-primary">&larr; 返回管理面板</a>
+{% endblock %}

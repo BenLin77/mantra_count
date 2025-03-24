@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="mb-0">管理員面板</h3>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card bg-primary text-white">
+                    <div class="card-body text-center">
+                        <h4>全球總唸誦數</h4>
+                        <h1 class="display-4">{{ total_count }}</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-success text-white">
+                    <div class="card-body text-center">
+                        <h4>註冊用戶數</h4>
+                        <h1 class="display-4">{{ user_count }}</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-info text-white">
+                    <div class="card-body text-center">
+                        <h4>咒語種類數</h4>
+                        <h1 class="display-4">{{ mantra_count }}</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">快速訪問</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="{{ url_for('admin.users') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-users mr-2"></i> 用戶管理
+                                </div>
+                                <span class="badge badge-primary badge-pill">{{ user_count }}</span>
+                            </a>
+                            <a href="{{ url_for('admin.mantras') }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-pray mr-2"></i> 咒語管理
+                                </div>
+                                <span class="badge badge-primary badge-pill">{{ mantra_count }}</span>
+                            </a>
+                            <a href="{{ url_for('admin.statistics') }}" class="list-group-item list-group-item-action">
+                                <i class="fas fa-chart-bar mr-2"></i> 統計數據
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">唸誦排行榜 (前5名)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>排名</th>
+                                        <th>用戶</th>
+                                        <th>唸誦次數</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i, stat in enumerate(top_users) %}
+                                    <tr>
+                                        <td>{{ i + 1 }}</td>
+                                        <td>
+                                            <a href="{{ url_for('admin.user_detail', id=stat.user_id) }}">
+                                                {{ stat.user_name }}
+                                            </a>
+                                        </td>
+                                        <td>{{ stat.count }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">&larr; 返回首頁</a>
+{% endblock %}

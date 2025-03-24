@@ -1,0 +1,80 @@
+# Python 相關
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# 虛擬環境
+venv/
+env/
+ENV/
+.venv/
+.env/
+.virtualenv/
+
+# Flask 相關
+instance/
+.webassets-cache
+
+# 資料庫
+*.db
+*.sqlite
+*.sqlite3
+
+# 日誌
+*.log
+logs/
+log/
+
+# 環境變數和敏感資訊
+.env
+.flaskenv
+*.pem
+*.key
+credentials.json
+client_secret.json
+
+# IDE 相關
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+.ipynb_checkpoints
+
+# 測試相關
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+nosetests.xml
+coverage.xml
+*.cover
+
+# 專案特定
+config.local.py
+instance/config.py
+app/static/uploads/
+
+# 暫存文件
+tmp/
+temp/
+.tmp/
+.temp/

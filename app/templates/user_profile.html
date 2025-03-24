@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="mb-0">個人資料</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">用戶資料</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">用戶名: {{ current_user.username }}</li>
+                            <li class="list-group-item">手機號碼: {{ current_user.phone }}</li>
+                            <li class="list-group-item">註冊時間: {{ current_user.created_at.strftime('%Y-%m-%d') }}</li>
+                            <li class="list-group-item">
+                                驗證狀態: 
+                                {% if current_user.is_verified %}
+                                <span class="badge badge-success">已驗證</span>
+                                {% else %}
+                                <span class="badge badge-warning">未驗證</span>
+                                {% endif %}
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            {% if not current_user.is_admin %}
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">持咒統計</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>我的總唸咒次數: <span class="badge badge-primary">{{ total_count }}</span></p>
+                        <p>持咒總計: <span class="badge badge-info">{{ global_count }}</span></p>
+                        
+                        <h5 class="mt-4">最近7天唸誦記錄</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>日期</th>
+                                        <th>咒語</th>
+                                        <th>唸誦次數</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for record in daily_records %}
+                                    <tr id="record-row-{{ record.id }}">
+                                        <td>{{ record.record_date.strftime('%Y-%m-%d') }}</td>
+                                        <td>{{ record.mantra.name }}</td>
+                                        <td>
+                                            <span id="count-display-{{ record.id }}">{{ record.count }}</span>
+                                            <div id="count-edit-{{ record.id }}" style="display: none;">
+                                                <input type="number" class="form-control form-control-sm" id="count-input-{{ record.id }}" value="{{ record.count }}" min="1">
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" id="edit-btn-{{ record.id }}" onclick="toggleEditMode({{ record.id }})">編輯</button>
+                                            <button class="btn btn-sm btn-success" id="save-btn-{{ record.id }}" style="display: none;" onclick="saveRecord({{ record.id }})">保存</button>
+                                            <button class="btn btn-sm btn-danger" id="cancel-btn-{{ record.id }}" style="display: none;" onclick="toggleEditMode({{ record.id }})">取消</button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleEditMode(recordId) {
+    const displayElem = document.getElementById(`count-display-${recordId}`);
+    const editElem = document.getElementById(`count-edit-${recordId}`);
+    const editBtn = document.getElementById(`edit-btn-${recordId}`);
+    const saveBtn = document.getElementById(`save-btn-${recordId}`);
+    const cancelBtn = document.getElementById(`cancel-btn-${recordId}`);
+    
+    if (displayElem.style.display !== 'none') {
+        displayElem.style.display = 'none';
+        editElem.style.display = 'block';
+        editBtn.style.display = 'none';
+        saveBtn.style.display = 'inline-block';
+        cancelBtn.style.display = 'inline-block';
+    } else {
+        displayElem.style.display = 'block';
+        editElem.style.display = 'none';
+        editBtn.style.display = 'inline-block';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    }
+}
+
+function saveRecord(recordId) {
+    const countInput = document.getElementById(`count-input-${recordId}`);
+    const count = countInput.value;
+    
+    fetch(`/edit_record/${recordId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ count: count }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById(`count-display-${recordId}`).innerText = count;
+            toggleEditMode(recordId);
+        } else {
+            alert('更新失敗: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('更新失敗，請稍後再試');
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="mb-0">編輯咒語 - {{ mantra.name }}</h3>
+    </div>
+    <div class="card-body">
+        <form method="post" action="">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.name.label }}
+                {{ form.name(class="form-control") }}
+                {% for error in form.name.errors %}
+                <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.sanskrit.label }}
+                {{ form.sanskrit(class="form-control") }}
+                {% for error in form.sanskrit.errors %}
+                <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.chinese.label }}
+                {{ form.chinese(class="form-control") }}
+                {% for error in form.chinese.errors %}
+                <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.description.label }}
+                {{ form.description(class="form-control", rows=5) }}
+                {% for error in form.description.errors %}
+                <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.benefits.label }}
+                {{ form.benefits(class="form-control", rows=5) }}
+                {% for error in form.benefits.errors %}
+                <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            <div class="form-check mb-3">
+                {{ form.is_default(class="form-check-input") }}
+                {{ form.is_default.label(class="form-check-label") }}
+                <small class="form-text text-muted">如果設為預設咒語，其他咒語將不再是預設咒語</small>
+            </div>
+            {{ form.submit(class="btn btn-warning") }}
+            <a href="{{ url_for('admin.mantras') }}" class="btn btn-outline-secondary">取消</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

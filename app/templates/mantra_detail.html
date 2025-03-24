@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="mb-0">{{ mantra.name }}</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-8">
+                {% if mantra.sanskrit %}
+                <h5>梵文原文</h5>
+                <p class="sanskrit-text">{{ mantra.sanskrit }}</p>
+                {% endif %}
+                
+                {% if mantra.chinese %}
+                <h5>中文音譯</h5>
+                <p>{{ mantra.chinese }}</p>
+                {% endif %}
+                
+                {% if mantra.description %}
+                <h5>咒語描述</h5>
+                <p>{{ mantra.description }}</p>
+                {% endif %}
+                
+                {% if mantra.benefits %}
+                <h5>功德利益</h5>
+                <p>{{ mantra.benefits }}</p>
+                {% endif %}
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">持咒總計</h5>
+                        <p class="display-4 text-center">{{ total_count }}</p>
+                        {% if current_user.is_authenticated %}
+                        <hr>
+                        <h5 class="card-title">我的唸誦次數</h5>
+                        <p class="display-4 text-center">{{ current_user.get_mantra_count(mantra.id) }}</p>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-block">記錄唸誦</a>
+                        {% else %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-primary btn-block">登入記錄唸誦</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a href="{{ url_for('main.index') }}" class="btn btn-outline-primary">&larr; 返回首頁</a>
+{% endblock %}
+
+{% block styles %}
+<style>
+.sanskrit-text {
+    font-size: 1.5em;
+    line-height: 1.8;
+}
+</style>
+{% endblock %}
