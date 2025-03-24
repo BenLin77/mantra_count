@@ -89,6 +89,9 @@ def send_email_via_pythonanywhere_api(recipient, subject, message):
         api_token = os.environ.get('PYTHONANYWHERE_API_TOKEN') or current_app.config.get('PYTHONANYWHERE_API_TOKEN')
         username = os.environ.get('PYTHONANYWHERE_USERNAME') or current_app.config.get('PYTHONANYWHERE_USERNAME', 'mantra')
         
+        print(f"API 令牌: {api_token[:5]}...{api_token[-5:] if api_token else 'None'}", file=sys.stderr)
+        print(f"用戶名: {username}", file=sys.stderr)
+        
         if not api_token:
             print("缺少 PYTHONANYWHERE_API_TOKEN 環境變數或配置項", file=sys.stderr)
             return False
@@ -102,22 +105,36 @@ def send_email_via_pythonanywhere_api(recipient, subject, message):
         
         # 發送 API 請求
         print(f"使用 PythonAnywhere API 發送郵件至 {recipient}...", file=sys.stderr)
-        response = requests.post(
-            f'https://www.pythonanywhere.com/api/v0/user/{username}/mail/',
-            headers={'Authorization': f'Token {api_token}'},
-            json=data
-        )
+        print(f"API URL: https://www.pythonanywhere.com/api/v0/user/{username}/mail/", file=sys.stderr)
         
-        # 檢查回應
-        if response.status_code == 200:
-            print(f"使用 PythonAnywhere API 成功發送郵件至 {recipient}", file=sys.stderr)
-            return True
-        else:
-            print(f"使用 PythonAnywhere API 發送郵件失敗: {response.text}", file=sys.stderr)
+        try:
+            response = requests.post(
+                f'https://www.pythonanywhere.com/api/v0/user/{username}/mail/',
+                headers={'Authorization': f'Token {api_token}'},
+                json=data,
+                timeout=30  # 設置超時時間為30秒
+            )
+            
+            # 檢查回應
+            print(f"API 回應狀態碼: {response.status_code}", file=sys.stderr)
+            print(f"API 回應內容: {response.text}", file=sys.stderr)
+            
+            if response.status_code == 200:
+                print(f"使用 PythonAnywhere API 成功發送郵件至 {recipient}", file=sys.stderr)
+                return True
+            else:
+                print(f"使用 PythonAnywhere API 發送郵件失敗: {response.text}", file=sys.stderr)
+                return False
+                
+        except requests.exceptions.RequestException as req_err:
+            print(f"API 請求異常: {str(req_err)}", file=sys.stderr)
             return False
             
     except Exception as e:
         print(f"使用 PythonAnywhere API 發送郵件時發生錯誤: {str(e)}", file=sys.stderr)
+        print(f"錯誤類型: {type(e).__name__}", file=sys.stderr)
+        import traceback
+        print(f"錯誤堆疊: {traceback.format_exc()}", file=sys.stderr)
         return False
 
 def send_verification_code(email, code):
