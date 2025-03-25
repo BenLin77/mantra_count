@@ -8,6 +8,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import logging
 import sys
+import os
 
 def send_verification_code(phone_number, code):
     """
@@ -45,20 +46,37 @@ def send_verification_code(phone_number, code):
         request_body = {
             "from": "噶陀十方尊勝佛學會",  # 發送者名稱
             "to": [international_phone],
-            "text": f"【噶陀十方尊勝佛學會】您的驗證碼是：{code}，10分鐘內有效，請勿洩露給他人，祝您修行順利，吉祥如意。"  # 直接使用文字內容
+            "text": f"【噶陀十方尊勝佛學會】您的驗證碼是：{code}，10分鐘內有效，請勿洩露給他人，祝您修行順利，吉祥如意。"
         }
         
         print(f'準備發送簡訊到 {international_phone}，內容：{request_body["text"]}', file=sys.stderr)
+        
+        # 設置請求標頭
+        headers = {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+        
+        # 設置代理（如果需要）
+        proxies = None
+        if os.environ.get('HTTP_PROXY'):
+            proxies = {
+                'http': os.environ.get('HTTP_PROXY'),
+                'https': os.environ.get('HTTPS_PROXY', os.environ.get('HTTP_PROXY'))
+            }
         
         # 發送請求
         response = requests.post(
             url, 
             json=request_body, 
-            auth=HTTPBasicAuth(sms_user, sms_key)
+            auth=HTTPBasicAuth(sms_user, sms_key),
+            headers=headers,
+            proxies=proxies,
+            timeout=10  # 設置超時時間
         )
         
         # 檢查回應
-        response.raise_for_status()  # 如果狀態碼不是 2xx，會拋出異常
+        response.raise_for_status()
         response_data = response.json()
         
         # 記錄回應
@@ -72,8 +90,13 @@ def send_verification_code(phone_number, code):
             logging.error(f'簡訊發送失敗: {response.text}')
             return False
             
-    except Exception as e:
+    except requests.exceptions.RequestException as e:
         error_msg = f'發送驗證碼失敗: {str(e)}'
+        print(error_msg, file=sys.stderr)
+        logging.error(error_msg)
+        return False
+    except Exception as e:
+        error_msg = f'發送驗證碼時發生未知錯誤: {str(e)}'
         print(error_msg, file=sys.stderr)
         logging.error(error_msg)
         return False
