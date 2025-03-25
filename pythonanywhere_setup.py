@@ -36,6 +36,9 @@ TEST_FILE_PATTERNS = [
     "send_test_*.py"
 ]
 
+# Flask 應用程序入口點
+FLASK_APP = "app.py"
+
 def rebuild_database():
     """重建 Flask 數據庫"""
     try:
@@ -44,30 +47,33 @@ def rebuild_database():
         # 刪除現有的數據庫文件 (如果存在)
         db_path = os.path.join(os.getcwd(), "app.db")
         if os.path.exists(db_path):
-            logger.info(f"備份現有數據庫到 app.db.bak_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-            shutil.copy2(db_path, f"{db_path}.bak_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
+            backup_name = f"{db_path}.bak_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            logger.info(f"備份現有數據庫到 {backup_name}")
+            shutil.copy2(db_path, backup_name)
             os.remove(db_path)
             logger.info("已刪除現有數據庫文件")
         
-        # 刪除遷移文件夾中的版本文件 (保留目錄結構)
-        migrations_versions_dir = os.path.join(os.getcwd(), "migrations", "versions")
-        if os.path.exists(migrations_versions_dir):
-            for file in os.listdir(migrations_versions_dir):
-                if file.endswith(".py") and file != "__init__.py":
-                    os.remove(os.path.join(migrations_versions_dir, file))
-            logger.info("已清理遷移版本文件")
-        
-        # 初始化遷移環境
-        logger.info("初始化遷移環境...")
-        os.system("FLASK_APP=mantra_count.py flask db init")
+        # 檢查遷移目錄是否存在
+        migrations_dir = os.path.join(os.getcwd(), "migrations")
+        if not os.path.exists(migrations_dir):
+            logger.info("遷移目錄不存在，將創建新的遷移環境")
+            os.system(f"FLASK_APP={FLASK_APP} flask db init")
+        else:
+            # 刪除遷移文件夾中的版本文件 (保留目錄結構)
+            migrations_versions_dir = os.path.join(migrations_dir, "versions")
+            if os.path.exists(migrations_versions_dir):
+                for file in os.listdir(migrations_versions_dir):
+                    if file.endswith(".py") and file != "__init__.py":
+                        os.remove(os.path.join(migrations_versions_dir, file))
+                logger.info("已清理遷移版本文件")
         
         # 創建遷移腳本
         logger.info("創建遷移腳本...")
-        os.system("FLASK_APP=mantra_count.py flask db migrate -m 'initial migration'")
+        os.system(f"FLASK_APP={FLASK_APP} flask db migrate -m 'initial migration'")
         
         # 應用遷移
         logger.info("應用遷移...")
-        os.system("FLASK_APP=mantra_count.py flask db upgrade")
+        os.system(f"FLASK_APP={FLASK_APP} flask db upgrade")
         
         logger.info("數據庫重建完成！")
         return True
