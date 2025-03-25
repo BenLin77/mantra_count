@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import smtplib
 import ssl
 import os
@@ -8,10 +11,20 @@ import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.header import Header
+from app import create_app
+from app.utils.email import send_email
+import logging
 
 # 載入環境變數
 basedir = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(basedir, '.env'))
+
+# 設置日誌記錄
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 def send_test_email(receiver_email):
     # 郵件配置
@@ -107,8 +120,61 @@ def send_test_email(receiver_email):
     
     return True
 
-if __name__ == "__main__":
-    print("測試電子郵件發送功能")
-    # 使用指定的電子郵件地址作為接收者
-    receiver_email = "goldking521@gmail.com"
-    send_test_email(receiver_email)
+def test_email_sending():
+    """測試郵件發送功能"""
+    try:
+        # 創建 Flask 應用
+        app = create_app()
+        
+        with app.app_context():
+            # 打印郵件配置信息
+            print(f"Flask 郵件配置信息:")
+            print(f"MAIL_SERVER: {app.config.get('MAIL_SERVER')}")
+            print(f"MAIL_PORT: {app.config.get('MAIL_PORT')}")
+            print(f"MAIL_USE_TLS: {app.config.get('MAIL_USE_TLS')}")
+            print(f"MAIL_USE_SSL: {app.config.get('MAIL_USE_SSL')}")
+            print(f"MAIL_USERNAME: {app.config.get('MAIL_USERNAME')}")
+            print(f"MAIL_DEFAULT_SENDER: {app.config.get('MAIL_DEFAULT_SENDER')}")
+            
+            # 測試郵件內容
+            subject = '【噶陀十方尊勝佛學會】郵件發送測試'
+            recipients = ['bookwormkobo521@gmail.com']
+            text_body = '''
+            親愛的用戶：
+            
+            這是一封測試郵件，用於驗證郵件發送功能是否正常。
+            
+            如果您收到這封郵件，表示郵件發送功能運作正常。
+            
+            祝您修行順利！
+            
+            噶陀十方尊勝佛學會持咒統計團隊
+            '''
+            
+            html_body = '''
+            <p>親愛的用戶：</p>
+            <p>這是一封測試郵件，用於驗證郵件發送功能是否正常。</p>
+            <p>如果您收到這封郵件，表示郵件發送功能運作正常。</p>
+            <p>祝您修行順利！</p>
+            <p>噶陀十方尊勝佛學會持咒統計團隊</p>
+            '''
+            
+            logger.info('開始發送測試郵件...')
+            print('開始發送測試郵件...')
+            
+            try:
+                send_email(subject, recipients, text_body, html_body)
+                print('測試郵件已發送，請檢查收件箱')
+                logger.info('測試郵件已發送')
+            except Exception as e:
+                print(f'使用 Flask-Mail 發送郵件時發生錯誤: {str(e)}')
+                logger.error(f'使用 Flask-Mail 發送郵件時發生錯誤: {str(e)}')
+            
+    except Exception as e:
+        logger.error(f'發送測試郵件時發生錯誤: {str(e)}')
+        print(f'發送測試郵件時發生錯誤: {str(e)}')
+        raise
+
+if __name__ == '__main__':
+    print("測試電子郵件發送功能 - 使用 Flask-Mail")
+    test_email_sending()

@@ -21,7 +21,7 @@ def init_db():
                 username=admin_username,
                 email=Config.ADMIN_EMAIL,
                 is_admin=True,
-                is_verified=True
+                email_verified=True
             )
             admin.set_password(Config.ADMIN_PASSWORD)
             db.session.add(admin)
