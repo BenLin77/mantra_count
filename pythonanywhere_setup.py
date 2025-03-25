@@ -17,6 +17,10 @@ import glob
 import shutil
 import logging
 from datetime import datetime
+from dotenv import load_dotenv
+
+# 載入 .env 文件中的環境變數
+load_dotenv()
 
 # 設置日誌
 logging.basicConfig(
@@ -38,6 +42,20 @@ TEST_FILE_PATTERNS = [
 
 # Flask 應用程序入口點
 FLASK_APP = "app.py"
+
+# 管理員設定
+ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'bookwormkobo521@gmail.com')
+ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', '!Changleisi666')
+ADMIN_USERNAME = 'admin'
+
+# 蓮花生大士心咒設定
+PADMASAMBHAVA_MANTRA = {
+    'name': '蓮花生大士心咒',
+    'sanskrit': 'oṃ āḥ hūṃ vajra guru padma siddhi hūṃ',
+    'chinese': '嗡啊吽 班雜咕嚕貝瑪悉地吽',
+    'description': '蓮花生大士是藏傳佛教的開山祖師，此咒語能消除障礙、增長智慧、圓滿成就。',
+    'is_default': True
+}
 
 def rebuild_database():
     """重建 Flask 數據庫"""
@@ -75,40 +93,96 @@ def rebuild_database():
         logger.info("應用遷移...")
         os.system(f"FLASK_APP={FLASK_APP} flask db upgrade")
         
+        # 初始化數據庫內容
+        logger.info("初始化數據庫內容...")
+        initialize_database_content()
+        
         logger.info("數據庫重建完成！")
         return True
     except Exception as e:
         logger.error(f"重建數據庫時發生錯誤: {str(e)}")
         return False
 
+def initialize_database_content():
+    """初始化數據庫內容，創建管理員帳號和預設咒語"""
+    try:
+        # 導入必要的模型
+        from app import create_app, db
+        from app.models.user import User
+        from app.models.mantra import Mantra
+        
+        app = create_app()
+        with app.app_context():
+            # 創建管理員帳號
+            admin = User.query.filter_by(username=ADMIN_USERNAME).first()
+            if not admin:
+                admin = User(
+                    username=ADMIN_USERNAME,
+                    email=ADMIN_EMAIL,
+                    is_admin=True,
+                    email_verified=True
+                )
+                admin.set_password(ADMIN_PASSWORD)
+                db.session.add(admin)
+                logger.info(f"已創建管理員帳號: {ADMIN_USERNAME} ({ADMIN_EMAIL})")
+            else:
+                # 更新現有管理員帳號
+                admin.email = ADMIN_EMAIL
+                admin.set_password(ADMIN_PASSWORD)
+                admin.is_admin = True
+                admin.email_verified = True
+                logger.info(f"已更新管理員帳號: {ADMIN_USERNAME} ({ADMIN_EMAIL})")
+            
+            # 創建蓮花生大士心咒
+            padmasambhava = Mantra.query.filter_by(name=PADMASAMBHAVA_MANTRA['name']).first()
+            if not padmasambhava:
+                padmasambhava = Mantra(
+                    name=PADMASAMBHAVA_MANTRA['name'],
+                    sanskrit=PADMASAMBHAVA_MANTRA['sanskrit'],
+                    chinese=PADMASAMBHAVA_MANTRA['chinese'],
+                    description=PADMASAMBHAVA_MANTRA['description'],
+                    is_default=PADMASAMBHAVA_MANTRA['is_default']
+                )
+                db.session.add(padmasambhava)
+                logger.info(f"已創建預設咒語: {PADMASAMBHAVA_MANTRA['name']}")
+            else:
+                # 確保蓮花生大士心咒為預設咒語
+                padmasambhava.is_default = True
+                logger.info(f"已將 {PADMASAMBHAVA_MANTRA['name']} 設為預設咒語")
+                
+                # 將其他咒語設為非預設
+                other_mantras = Mantra.query.filter(Mantra.id != padmasambhava.id).all()
+                for mantra in other_mantras:
+                    if mantra.is_default:
+                        mantra.is_default = False
+                        logger.info(f"已將 {mantra.name} 設為非預設咒語")
+            
+            # 提交所有更改
+            db.session.commit()
+            logger.info("數據庫內容初始化完成")
+            
+    except Exception as e:
+        logger.error(f"初始化數據庫內容時發生錯誤: {str(e)}")
+        raise
+
 def clean_test_files():
     """清理測試相關的 Python 文件"""
     try:
         logger.info("開始清理測試文件...")
         
-        # 創建備份目錄
-        backup_dir = os.path.join(os.getcwd(), f"test_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}")
-        os.makedirs(backup_dir, exist_ok=True)
-        logger.info(f"創建備份目錄: {backup_dir}")
-        
-        # 查找並移動測試文件
-        test_files = []
+        removed_count = 0
         for pattern in TEST_FILE_PATTERNS:
-            test_files.extend(glob.glob(os.path.join(os.getcwd(), pattern)))
+            for file_path in glob.glob(pattern):
+                if os.path.isfile(file_path):
+                    logger.info(f"刪除測試文件: {file_path}")
+                    os.remove(file_path)
+                    removed_count += 1
         
-        if not test_files:
-            logger.info("未找到測試文件")
-            return True
+        if removed_count > 0:
+            logger.info(f"已清理 {removed_count} 個測試文件")
+        else:
+            logger.info("未找到需要清理的測試文件")
         
-        for file_path in test_files:
-            if os.path.isfile(file_path):
-                file_name = os.path.basename(file_path)
-                backup_path = os.path.join(backup_dir, file_name)
-                shutil.copy2(file_path, backup_path)
-                os.remove(file_path)
-                logger.info(f"已備份並刪除測試文件: {file_name}")
-        
-        logger.info(f"測試文件清理完成！所有文件已備份到 {backup_dir}")
         return True
     except Exception as e:
         logger.error(f"清理測試文件時發生錯誤: {str(e)}")
@@ -117,25 +191,37 @@ def clean_test_files():
 def main():
     """主函數"""
     if len(sys.argv) < 2:
-        print("用法: python pythonanywhere_setup.py [rebuild_db|clean_tests|all]")
-        return
+        logger.error("請指定操作: rebuild_db, clean_tests, 或 all")
+        sys.exit(1)
     
-    command = sys.argv[1].lower()
+    action = sys.argv[1].lower()
     
-    if command == "rebuild_db":
-        rebuild_database()
-    elif command == "clean_tests":
-        clean_test_files()
-    elif command == "all":
-        db_result = rebuild_database()
-        test_result = clean_test_files()
-        
-        if db_result and test_result:
-            logger.info("所有操作已成功完成！")
+    if action == "rebuild_db":
+        if rebuild_database():
+            logger.info("數據庫重建成功")
         else:
-            logger.warning("部分操作失敗，請查看日誌了解詳情")
+            logger.error("數據庫重建失敗")
+            sys.exit(1)
+    
+    elif action == "clean_tests":
+        if clean_test_files():
+            logger.info("測試文件清理成功")
+        else:
+            logger.error("測試文件清理失敗")
+            sys.exit(1)
+    
+    elif action == "all":
+        success = rebuild_database() and clean_test_files()
+        if success:
+            logger.info("所有操作完成")
+        else:
+            logger.error("操作過程中發生錯誤")
+            sys.exit(1)
+    
     else:
-        print("無效的命令。用法: python pythonanywhere_setup.py [rebuild_db|clean_tests|all]")
+        logger.error(f"未知操作: {action}")
+        logger.error("有效操作: rebuild_db, clean_tests, all")
+        sys.exit(1)
 
 if __name__ == "__main__":
     logger.info("開始執行 PythonAnywhere 設置腳本")
