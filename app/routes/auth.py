@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import User
+from app.models.temp_user import TempUser
 from app.forms.auth import LoginForm, RegisterForm, ResetPasswordRequestForm, ResetPasswordForm
 from app.utils.email import send_verification_email, send_password_reset_email
 from app import db
@@ -51,40 +52,93 @@ def register():
             flash('此電子郵件已被註冊', 'error')
             return redirect(url_for('auth.register'))
             
-        # 創建新用戶但暫不提交到數據庫
-        user = User(
+        # 檢查臨時用戶表中是否已有此電子郵件
+        if TempUser.query.filter_by(email=form.email.data).first():
+            flash('此電子郵件已在註冊流程中，請檢查您的郵箱或等待驗證連結過期後再試', 'warning')
+            return redirect(url_for('auth.register'))
+        
+        # 清理過期的臨時用戶
+        TempUser.cleanup_expired()
+        
+        # 創建臨時用戶
+        temp_user = TempUser(
             username=form.username.data,
             email=form.email.data,
-            verification_code=generate_verification_code()
+            password=form.password.data
         )
-        user.set_password(form.password.data)
-        db.session.add(user)
         
-        # 發送驗證郵件
-        email_sent = send_verification_email(user)
+        # 添加到數據庫
+        db.session.add(temp_user)
         
-        if email_sent:
-            # 只有在郵件發送成功後才提交到數據庫
+        try:
+            # 提交臨時用戶到數據庫
             db.session.commit()
-            flash('註冊成功！請查看您的電子郵件以完成驗證。', 'success')
-            return redirect(url_for('auth.login'))
-        else:
-            # 郵件發送失敗，回滾數據庫操作
+            
+            # 發送驗證郵件
+            email_sent = send_verification_email(temp_user)
+            
+            if email_sent:
+                flash('註冊申請已提交！請查看您的電子郵件以完成驗證。驗證連結有效期為24小時。', 'success')
+                return redirect(url_for('auth.login'))
+            else:
+                # 郵件發送失敗，刪除臨時用戶
+                db.session.delete(temp_user)
+                db.session.commit()
+                flash('註冊失敗，無法發送驗證郵件。請稍後再試或聯繫管理員。', 'error')
+                return redirect(url_for('auth.register'))
+        except Exception as e:
             db.session.rollback()
-            flash('註冊失敗，無法發送驗證郵件。請稍後再試或聯繫管理員。', 'error')
+            current_app.logger.error(f'註冊過程中發生錯誤: {str(e)}')
+            flash('註冊過程中發生錯誤，請稍後再試。', 'error')
             return redirect(url_for('auth.register'))
         
     return render_template('auth/register.html', title='註冊', form=form)
 
 @bp.route('/verify/<token>')
 def verify_email(token):
-    user = User.verify_email_token(token)
-    if not user:
-        flash('驗證連結無效或已過期', 'error')
-    else:
-        user.email_verified = True
+    # 清理過期的臨時用戶
+    TempUser.cleanup_expired()
+    
+    # 查找對應的臨時用戶
+    temp_user = TempUser.query.filter_by(verification_token=token).first()
+    
+    if not temp_user:
+        # 檢查是否是舊系統的令牌
+        user = User.verify_email_token(token)
+        if user:
+            user.email_verified = True
+            db.session.commit()
+            flash('電子郵件驗證成功！', 'success')
+        else:
+            flash('驗證連結無效或已過期', 'error')
+        return redirect(url_for('auth.login'))
+    
+    # 檢查臨時用戶是否過期
+    if temp_user.is_expired():
+        db.session.delete(temp_user)
         db.session.commit()
-        flash('電子郵件驗證成功！', 'success')
+        flash('驗證連結已過期，請重新註冊', 'error')
+        return redirect(url_for('auth.register'))
+    
+    try:
+        # 創建正式用戶
+        user = temp_user.to_user()
+        
+        # 添加到數據庫
+        db.session.add(user)
+        
+        # 刪除臨時用戶
+        db.session.delete(temp_user)
+        
+        # 提交更改
+        db.session.commit()
+        
+        flash('電子郵件驗證成功！您現在可以登入了。', 'success')
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'驗證過程中發生錯誤: {str(e)}')
+        flash('驗證過程中發生錯誤，請稍後再試或聯繫管理員。', 'error')
+    
     return redirect(url_for('auth.login'))
 
 @bp.route('/reset_password_request', methods=['GET', 'POST'])

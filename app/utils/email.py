@@ -178,83 +178,52 @@ def send_email_via_pythonanywhere_api(recipient, subject, message):
         print(f"錯誤堆疊: {traceback.format_exc()}", file=sys.stderr)
         return False
 
-def send_verification_code(email, code):
-    """
-    發送驗證碼電子郵件
+def send_verification_email(temp_user):
+    """發送電子郵件驗證連結
     
     Args:
-        email (str): 接收者的電子郵件地址
-        code (str): 6位數的驗證碼
-    
+        temp_user: 臨時用戶對象
+        
     Returns:
-        bool: 發送成功返回 True，否則返回 False
+        bool: 郵件發送是否成功
     """
     try:
-        subject = "噶陀十方尊勝佛學會持咒統計 - 您的驗證碼"
-        body = f"""
-親愛的用戶：
-
-您好！感謝您註冊噶陀十方尊勝佛學會持咒統計。
-
-您的驗證碼是：{code}
-
-此驗證碼將在 10 分鐘內有效。請不要將此驗證碼分享給其他人。
-
-如果您沒有請求此驗證碼，請忽略此郵件。
-
-祝您修行順利！
-
-噶陀十方尊勝佛學會持咒統計團隊
-"""
+        current_app.logger.info(f'為臨時用戶 {temp_user.username} ({temp_user.email}) 發送驗證郵件')
         
-        # 打印詳細的郵件配置信息，用於調試
-        print(f"郵件配置信息:", file=sys.stderr)
-        print(f"MAIL_SERVER: {current_app.config.get('MAIL_SERVER')}", file=sys.stderr)
-        print(f"MAIL_PORT: {current_app.config.get('MAIL_PORT')}", file=sys.stderr)
-        print(f"MAIL_USE_TLS: {current_app.config.get('MAIL_USE_TLS')}", file=sys.stderr)
-        print(f"MAIL_USE_SSL: {current_app.config.get('MAIL_USE_SSL')}", file=sys.stderr)
-        print(f"MAIL_USERNAME: {current_app.config.get('MAIL_USERNAME')}", file=sys.stderr)
-        print(f"MAIL_DEFAULT_SENDER: {current_app.config.get('MAIL_DEFAULT_SENDER')}", file=sys.stderr)
+        verification_url = url_for(
+            'auth.verify_email',
+            token=temp_user.verification_token,
+            _external=True
+        )
         
-        print(f"嘗試發送驗證碼 {code} 至 {email}", file=sys.stderr)
+        result = send_email(
+            subject='【噶陀十方尊勝佛學會】請驗證您的電子郵件',
+            recipients=[temp_user.email],
+            text_body=f'''親愛的 {temp_user.username}：
+
+感謝您註冊噶陀十方尊勝佛學會持咒計數系統。
+
+請點擊以下連結驗證您的電子郵件：
+{verification_url}
+
+如果您沒有註冊帳號，請忽略此郵件。
+
+祝福您
+噶陀十方尊勝佛學會
+''',
+            html_body=f'''
+<p>親愛的 {temp_user.username}：</p>
+<p>感謝您註冊噶陀十方尊勝佛學會持咒計數系統。</p>
+<p>請點擊以下連結驗證您的電子郵件：</p>
+<p><a href="{verification_url}">驗證電子郵件</a></p>
+<p>如果您沒有註冊帳號，請忽略此郵件。</p>
+<p>祝福您<br>噶陀十方尊勝佛學會</p>
+'''
+        )
         
-        # 使用 Flask-Mail 發送郵件（直接方式，不使用背景線程）
-        try:
-            print(f"使用 Flask-Mail 發送電子郵件...", file=sys.stderr)
-            
-            msg = Message(
-                subject=subject,
-                recipients=[email],
-                body=body,
-                sender=current_app.config['MAIL_DEFAULT_SENDER']
-            )
-            
-            # 同步發送郵件
-            mail.send(msg)
-            
-            print(f"使用 Flask-Mail 成功發送郵件至 {email}", file=sys.stderr)
-            logging.info(f"驗證碼已發送至 {email}")
-            return True
-            
-        except Exception as mail_error:
-            print(f"使用 Flask-Mail 發送郵件失敗: {str(mail_error)}", file=sys.stderr)
-            
-            # 嘗試使用 PythonAnywhere API 作為備選方案
-            try:
-                print(f"嘗試使用 PythonAnywhere API 發送郵件...", file=sys.stderr)
-                if send_email_via_pythonanywhere_api(email, subject, body):
-                    print(f"使用 PythonAnywhere API 成功發送郵件至 {email}", file=sys.stderr)
-                    logging.info(f"驗證碼已通過 PythonAnywhere API 發送至 {email}")
-                    return True
-                else:
-                    print(f"使用 PythonAnywhere API 發送郵件失敗", file=sys.stderr)
-            except Exception as api_error:
-                print(f"使用 PythonAnywhere API 發送郵件時發生錯誤: {str(api_error)}", file=sys.stderr)
-            
-            return False
-        
+        return result
     except Exception as e:
-        print(f"準備發送電子郵件時發生錯誤: {str(e)}", file=sys.stderr)
+        current_app.logger.error(f'發送驗證郵件時發生錯誤: {str(e)}')
         return False
 
 def send_async_email(app, msg):
@@ -328,49 +297,6 @@ def send_email(subject, recipients, text_body, html_body=None):
         
     except Exception as e:
         print(f"準備發送電子郵件時發生錯誤: {str(e)}", file=sys.stderr)
-        return False
-
-def send_verification_email(user):
-    """
-    發送電子郵件驗證連結
-    
-    Args:
-        user: 用戶對象，包含 email 和 username 屬性
-        
-    Returns:
-        bool: 發送成功返回 True，否則返回 False
-    """
-    try:
-        token = user.get_email_verification_token()
-        print(f"為用戶 {user.username} ({user.email}) 生成驗證令牌", file=sys.stderr)
-        
-        return send_email(
-            subject='【噶陀十方尊勝佛學會】請驗證您的電子郵件',
-            recipients=[user.email],
-            text_body=f'''親愛的 {user.username}：
-
-感謝您註冊噶陀十方尊勝佛學會持咒統計系統。
-
-請點擊以下連結以驗證您的電子郵件：
-
-{url_for('auth.verify_email', token=token, _external=True)}
-
-如果您沒有註冊此帳號，請忽略此郵件。
-
-祝您修行順利！
-
-噶陀十方尊勝佛學會持咒統計團隊''',
-            html_body=f'''
-<p>親愛的 {user.username}：</p>
-<p>感謝您註冊噶陀十方尊勝佛學會持咒統計系統。</p>
-<p>請點擊以下連結以驗證您的電子郵件：</p>
-<p><a href="{url_for('auth.verify_email', token=token, _external=True)}">驗證電子郵件</a></p>
-<p>如果您沒有註冊此帳號，請忽略此郵件。</p>
-<p>祝您修行順利！</p>
-<p>噶陀十方尊勝佛學會持咒統計團隊</p>'''
-        )
-    except Exception as e:
-        print(f"準備發送驗證郵件時發生錯誤: {str(e)}", file=sys.stderr)
         return False
 
 def send_password_reset_email(user):
