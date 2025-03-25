@@ -16,9 +16,9 @@ class RegistrationForm(FlaskForm):
         DataRequired(message='請輸入用戶名'),
         Length(min=3, max=20, message='用戶名長度必須在3到20個字符之間')
     ])
-    email = StringField('電子郵件', validators=[
-        DataRequired(message='請輸入電子郵件'),
-        Email(message='請輸入有效的電子郵件地址')
+    phone = StringField('手機號碼', validators=[
+        DataRequired(message='請輸入手機號碼'),
+        Regexp(r'^09\d{8}$', message='請輸入有效的台灣手機號碼（格式：09xxxxxxxx）')
     ])
     password = PasswordField('密碼', validators=[
         DataRequired(message='請輸入密碼'),
@@ -36,11 +36,11 @@ class RegistrationForm(FlaskForm):
         if user is not None:
             raise ValidationError('該用戶名已被使用，請選擇其他用戶名')
 
-    def validate_email(self, email):
-        """驗證電子郵件是否已存在"""
-        user = User.query.filter_by(email=email.data).first()
+    def validate_phone(self, phone):
+        """驗證手機號碼是否已存在"""
+        user = User.query.filter_by(phone=phone.data).first()
         if user is not None:
-            raise ValidationError('該電子郵件已被註冊')
+            raise ValidationError('該手機號碼已被註冊')
 
 class VerificationForm(FlaskForm):
     """電子郵件驗證碼表單"""
@@ -52,9 +52,9 @@ class VerificationForm(FlaskForm):
 
 class ResetPasswordRequestForm(FlaskForm):
     """請求重設密碼表單"""
-    email = StringField('電子郵件', validators=[
-        DataRequired(message='請輸入電子郵件'),
-        Email(message='請輸入有效的電子郵件地址')
+    phone = StringField('手機號碼', validators=[
+        DataRequired(message='請輸入手機號碼'),
+        Regexp(r'^09\d{8}$', message='請輸入有效的台灣手機號碼（格式：09xxxxxxxx）')
     ])
     submit = SubmitField('發送驗證碼')
 

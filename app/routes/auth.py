@@ -4,7 +4,7 @@ from app import db
 from app.models.user import User
 from app.forms.auth import (LoginForm, RegistrationForm, VerificationForm,
                           ResetPasswordRequestForm, ResetPasswordForm)
-from app.utils.email import send_verification_code
+from app.utils.sms import send_verification_code
 import sys
 import secrets
 from datetime import datetime, timedelta
@@ -50,13 +50,13 @@ def register():
     
     form = RegistrationForm()
     if form.validate_on_submit():
-        # 檢查用戶名和電子郵件是否已存在
+        # 檢查用戶名和手機號碼是否已存在
         if User.query.filter_by(username=form.username.data).first():
             flash('該用戶名已被使用', 'danger')
             return redirect(url_for('auth.register'))
         
-        if User.query.filter_by(email=form.email.data).first():
-            flash('該電子郵件已被註冊', 'danger')
+        if User.query.filter_by(phone=form.phone.data).first():
+            flash('該手機號碼已被註冊', 'danger')
             return redirect(url_for('auth.register'))
         
         # 生成驗證碼
@@ -66,23 +66,23 @@ def register():
         # 將用戶資料存儲在 session 中，而不是直接寫入資料庫
         session['pending_user'] = {
             'username': form.username.data,
-            'email': form.email.data,
+            'phone': form.phone.data,
             'password': form.password.data,  # 這裡存儲的是明文密碼，將在驗證成功後進行哈希處理
             'verification_code': verification_code,
             'verification_expires': verification_expires.timestamp()
         }
         
-        # 發送驗證碼電子郵件
-        send_verification_code(form.email.data, verification_code)
+        # 發送驗證碼簡訊
+        send_verification_code(form.phone.data, verification_code)
         
-        flash('請輸入您收到的驗證碼完成電子郵件驗證', 'success')
+        flash('請輸入您收到的驗證碼完成手機號碼驗證', 'success')
         return redirect(url_for('auth.verify', username=form.username.data))
     
     return render_template('auth/register.html', title='註冊', form=form)
 
 @bp.route('/verify/<username>', methods=['GET', 'POST'])
 def verify(username):
-    """電子郵件驗證視圖"""
+    """手機號碼驗證視圖"""
     if current_user.is_authenticated and current_user.is_verified:
         return redirect(url_for('main.index'))
     
@@ -102,7 +102,7 @@ def verify(username):
             # 驗證成功，創建新用戶並寫入資料庫
             user = User(
                 username=pending_user.get('username'),
-                email=pending_user.get('email'),
+                phone=pending_user.get('phone'),
                 is_verified=True
             )
             user.set_password(pending_user.get('password'))
@@ -118,7 +118,7 @@ def verify(username):
         else:
             flash('驗證碼無效或已過期', 'danger')
     
-    return render_template('auth/verify.html', title='驗證電子郵件', form=form, username=username)
+    return render_template('auth/verify.html', title='驗證手機號碼', form=form, username=username)
 
 @bp.route('/resend_code/<username>')
 def resend_code(username):
@@ -139,9 +139,9 @@ def resend_code(username):
     session['pending_user'] = pending_user
     
     # 發送新的驗證碼
-    send_verification_code(pending_user.get('email'), verification_code)
+    send_verification_code(pending_user.get('phone'), verification_code)
     
-    flash('新的驗證碼已發送至您的電子郵件', 'info')
+    flash('新的驗證碼已發送至您的手機', 'info')
     return redirect(url_for('auth.verify', username=username))
 
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
@@ -152,30 +152,30 @@ def reset_password_request():
     
     form = ResetPasswordRequestForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter_by(phone=form.phone.data).first()
         
         if user:
             # 生成驗證碼
             verification_code = user.generate_verification_code()
             db.session.commit()
             
-            # 發送驗證碼電子郵件
-            send_verification_code(user.email, verification_code)
+            # 發送驗證碼簡訊
+            send_verification_code(user.phone, verification_code)
             
-            flash('驗證碼已發送至您的電子郵件，請查收', 'info')
-            return redirect(url_for('auth.reset_password', email=user.email))
+            flash('驗證碼已發送至您的手機，請查收', 'info')
+            return redirect(url_for('auth.reset_password', phone=user.phone))
         else:
-            flash('找不到該電子郵件地址的用戶', 'danger')
+            flash('找不到該手機號碼的用戶', 'danger')
     
     return render_template('auth/reset_password_request.html', title='重設密碼', form=form)
 
-@bp.route('/reset_password/<email>', methods=['GET', 'POST'])
-def reset_password(email):
+@bp.route('/reset_password/<phone>', methods=['GET', 'POST'])
+def reset_password(phone):
     """重設密碼視圖"""
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     
-    user = User.query.filter_by(email=email).first_or_404()
+    user = User.query.filter_by(phone=phone).first_or_404()
     form = ResetPasswordForm()
     
     if form.validate_on_submit():

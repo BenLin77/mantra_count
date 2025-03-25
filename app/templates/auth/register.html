@@ -18,10 +18,10 @@
                         {% endfor %}
                     </div>
                     <div class="form-group">
-                        {{ form.email.label }}
-                        {{ form.email(class="form-control", placeholder="your.email@example.com") }}
-                        <small class="form-text text-muted">請輸入有效的電子郵件地址，我們將發送驗證碼至此郵箱</small>
-                        {% for error in form.email.errors %}
+                        {{ form.phone.label }}
+                        {{ form.phone(class="form-control", placeholder="09xxxxxxxx") }}
+                        <small class="form-text text-muted">請輸入有效的台灣手機號碼，我們將發送驗證碼至此號碼</small>
+                        {% for error in form.phone.errors %}
                         <small class="text-danger">{{ error }}</small>
                         {% endfor %}
                     </div>
