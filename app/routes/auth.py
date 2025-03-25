@@ -73,9 +73,12 @@ def register():
         }
         
         # 發送驗證碼簡訊
-        send_verification_code(form.phone.data, verification_code)
+        if send_verification_code(form.phone.data, verification_code):
+            flash('驗證碼已發送至您的手機，請查收', 'success')
+        else:
+            flash('驗證碼發送失敗，請稍後重試', 'danger')
+            return redirect(url_for('auth.register'))
         
-        flash('請輸入您收到的驗證碼完成手機號碼驗證', 'success')
         return redirect(url_for('auth.verify', username=form.username.data))
     
     return render_template('auth/register.html', title='註冊', form=form)
@@ -107,14 +110,20 @@ def verify(username):
             )
             user.set_password(pending_user.get('password'))
             
-            db.session.add(user)
-            db.session.commit()
-            
-            # 清除 session 中的臨時資料
-            session.pop('pending_user', None)
-            
-            flash('驗證成功！您現在可以登入了', 'success')
-            return redirect(url_for('auth.login'))
+            try:
+                db.session.add(user)
+                db.session.commit()
+                
+                # 清除 session 中的臨時資料
+                session.pop('pending_user', None)
+                
+                flash('驗證成功！您現在可以登入了', 'success')
+                return redirect(url_for('auth.login'))
+            except Exception as e:
+                db.session.rollback()
+                flash('註冊失敗，請稍後重試', 'danger')
+                print(f"註冊失敗: {str(e)}", file=sys.stderr)
+                return redirect(url_for('auth.register'))
         else:
             flash('驗證碼無效或已過期', 'danger')
     
@@ -139,9 +148,11 @@ def resend_code(username):
     session['pending_user'] = pending_user
     
     # 發送新的驗證碼
-    send_verification_code(pending_user.get('phone'), verification_code)
+    if send_verification_code(pending_user.get('phone'), verification_code):
+        flash('新的驗證碼已發送至您的手機', 'info')
+    else:
+        flash('驗證碼發送失敗，請稍後重試', 'danger')
     
-    flash('新的驗證碼已發送至您的手機', 'info')
     return redirect(url_for('auth.verify', username=username))
 
 @bp.route('/reset_password_request', methods=['GET', 'POST'])
@@ -160,9 +171,12 @@ def reset_password_request():
             db.session.commit()
             
             # 發送驗證碼簡訊
-            send_verification_code(user.phone, verification_code)
+            if send_verification_code(user.phone, verification_code):
+                flash('驗證碼已發送至您的手機，請查收', 'info')
+            else:
+                flash('驗證碼發送失敗，請稍後重試', 'danger')
+                return redirect(url_for('auth.reset_password_request'))
             
-            flash('驗證碼已發送至您的手機，請查收', 'info')
             return redirect(url_for('auth.reset_password', phone=user.phone))
         else:
             flash('找不到該手機號碼的用戶', 'danger')
