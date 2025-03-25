@@ -8,7 +8,6 @@ import requests
 from requests.auth import HTTPBasicAuth
 import logging
 import sys
-import os
 
 def send_verification_code(phone_number, code):
     """
@@ -57,22 +56,14 @@ def send_verification_code(phone_number, code):
             'Accept': 'application/json'
         }
         
-        # 設置代理（如果需要）
-        proxies = None
-        if os.environ.get('HTTP_PROXY'):
-            proxies = {
-                'http': os.environ.get('HTTP_PROXY'),
-                'https': os.environ.get('HTTPS_PROXY', os.environ.get('HTTP_PROXY'))
-            }
-        
         # 發送請求
         response = requests.post(
             url, 
             json=request_body, 
             auth=HTTPBasicAuth(sms_user, sms_key),
             headers=headers,
-            proxies=proxies,
-            timeout=10  # 設置超時時間
+            timeout=10,  # 設置超時時間
+            verify=True  # 驗證 SSL 證書
         )
         
         # 檢查回應
