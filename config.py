@@ -9,10 +9,10 @@ class Config:
     SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(basedir, 'app.db')
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
-    # Twilio 配置
-    TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID')
-    TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')
-    TWILIO_PHONE_NUMBER = os.environ.get('TWILIO_PHONE_NUMBER')
+    # Engagelab SMS 配置
+    ENGAGELAB_USER = os.environ.get('ENGAGELAB_USER')
+    ENGAGELAB_KEY = os.environ.get('ENGAGELAB_KEY')
+    ENGAGELAB_TEMPLATE_ID = os.environ.get('ENGAGELAB_TEMPLATE_ID')
     
     # 管理員帳號配置
     ADMIN_USERNAME = os.environ.get('ADMIN_USERNAME') or 'admin'
