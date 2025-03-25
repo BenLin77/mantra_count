@@ -51,7 +51,7 @@ def register():
             flash('此電子郵件已被註冊', 'error')
             return redirect(url_for('auth.register'))
             
-        # 創建新用戶
+        # 創建新用戶但暫不提交到數據庫
         user = User(
             username=form.username.data,
             email=form.email.data,
@@ -59,17 +59,20 @@ def register():
         )
         user.set_password(form.password.data)
         db.session.add(user)
-        db.session.commit()
         
         # 發送驗證郵件
         email_sent = send_verification_email(user)
         
         if email_sent:
+            # 只有在郵件發送成功後才提交到數據庫
+            db.session.commit()
             flash('註冊成功！請查看您的電子郵件以完成驗證。', 'success')
+            return redirect(url_for('auth.login'))
         else:
-            flash('註冊成功，但發送驗證郵件失敗。請聯繫管理員。', 'warning')
-            
-        return redirect(url_for('auth.login'))
+            # 郵件發送失敗，回滾數據庫操作
+            db.session.rollback()
+            flash('註冊失敗，無法發送驗證郵件。請稍後再試或聯繫管理員。', 'error')
+            return redirect(url_for('auth.register'))
         
     return render_template('auth/register.html', title='註冊', form=form)
 
