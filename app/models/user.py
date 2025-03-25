@@ -37,8 +37,8 @@ class User(UserMixin, db.Model):
         records = MantraRecord.query.filter_by(user_id=self.id, mantra_id=mantra_id).all()
         return sum(record.count for record in records)
     
-    def get_email_verification_token(self, expires_in=3600):
-        """生成 email 驗證 token"""
+    def get_email_verification_token(self, expires_in=86400):
+        """生成 email 驗證 token，有效期為24小時"""
         return jwt.encode(
             {
                 'verify_email': self.id,
@@ -57,7 +57,14 @@ class User(UserMixin, db.Model):
                 current_app.config['SECRET_KEY'],
                 algorithms=['HS256']
             )['verify_email']
-        except:
+        except jwt.ExpiredSignatureError:
+            current_app.logger.warning('驗證令牌已過期')
+            return None
+        except jwt.InvalidTokenError:
+            current_app.logger.warning('無效的驗證令牌')
+            return None
+        except Exception as e:
+            current_app.logger.error(f'驗證令牌時發生錯誤: {str(e)}')
             return None
         return User.query.get(id)
     
