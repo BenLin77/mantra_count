@@ -13,7 +13,7 @@
                         <h5 class="card-title">用戶資料</h5>
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">用戶名: {{ current_user.username }}</li>
-                            <li class="list-group-item">手機號碼: {{ current_user.phone }}</li>
+                            <li class="list-group-item">電子郵件: {{ current_user.email }}</li>
                             <li class="list-group-item">註冊時間: {{ current_user.created_at.strftime('%Y-%m-%d') }}</li>
                             <li class="list-group-item">
                                 驗證狀態: 
