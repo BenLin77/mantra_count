@@ -2,6 +2,8 @@
 body {
     font-family: 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
     background-color: #f8f9fa;
+    color: #333;
+    line-height: 1.6;
 }
 
 .navbar-brand {
@@ -21,6 +23,12 @@ body {
     border-radius: 0.5rem;
     border: none;
     margin-bottom: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .card-header {
@@ -33,6 +41,12 @@ body {
 .btn {
     border-radius: 0.3rem;
     padding: 0.375rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
 }
 
 .btn-primary {
@@ -74,127 +88,200 @@ body {
     color: #6f42c1;
 }
 
-/* 首頁樣式 */
-.jumbotron {
-    background-color: rgba(255, 255, 255, 0.85);
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-    position: relative;
-    z-index: 1;
+/* 首頁頂部區域 */
+.header-section {
+    padding: 2rem 0 3rem;
+    background-color: #fff;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 2rem;
 }
 
-/* 封面圖片樣式 - 類似Facebook的封面照片 */
-.cover-section {
-    position: relative;
-    height: 350px;
-    margin-bottom: 80px;
-    margin-top: -1.5rem;
+/* 頂部橫幅 */
+.banner-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+}
+
+/* 標題區域 */
+.title-container {
+    flex: 1;
+    padding-right: 2rem;
+}
+
+.site-title {
+    color: #6f42c1;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.site-description {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+}
+
+/* 寺廟圖片容器 */
+.temple-image-container {
+    width: 40%;
+    height: 200px;
+    border-radius: 8px;
     overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.cover-image {
+.temple-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
+    transition: transform 0.5s ease;
 }
 
-.cover-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 1;
+.temple-image:hover {
+    transform: scale(1.05);
 }
 
-.cover-content {
-    position: relative;
-    z-index: 2;
-    color: #fff;
-    text-align: center;
-    padding-top: 120px;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+/* 上師圖片區域 */
+.lama-container {
+    display: flex;
+    align-items: center;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* 人物圖片樣式 - 類似Facebook的頭像 */
-.profile-image-container {
-    position: absolute;
-    bottom: -60px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 3;
-    border: 5px solid #fff;
+.lama-image-container {
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     overflow: hidden;
-    width: 150px;
-    height: 150px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border: 3px solid #fff;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    margin-right: 1.5rem;
+    flex-shrink: 0;
 }
 
-.profile-image {
+.lama-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.lama-info {
+    flex: 1;
+}
+
+.lama-title {
+    color: #6f42c1;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.lama-description {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 0;
+}
+
+/* 統計卡片 */
+.stats-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+.stats-title {
+    color: #6f42c1;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.stats-count {
+    color: #6f42c1;
+    font-size: 3rem;
+    font-weight: 300;
+    margin-bottom: 0;
+}
+
+/* 內容區塊 */
+.content-section {
+    margin-top: 2rem;
 }
 
 /* 響應式調整 */
+@media (max-width: 992px) {
+    .banner-container {
+        flex-direction: column;
+    }
+    
+    .title-container {
+        padding-right: 0;
+        text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .temple-image-container {
+        width: 100%;
+        height: 180px;
+    }
+    
+    .lama-container {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .lama-image-container {
+        margin-right: 0;
+        margin-bottom: 1rem;
+    }
+}
+
 @media (max-width: 768px) {
-    .jumbotron {
-        padding: 1.5rem;
+    .header-section {
+        padding: 1.5rem 0 2rem;
+    }
+    
+    .temple-image-container {
+        height: 150px;
+    }
+    
+    .lama-image-container {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .stats-count {
+        font-size: 2.5rem;
     }
     
     .card-body {
         padding: 1rem;
     }
-    
-    .cover-section {
-        height: 250px;
-        margin-bottom: 70px;
-    }
-    
-    .cover-content {
-        padding-top: 80px;
-    }
-    
-    .profile-image-container {
-        width: 120px;
-        height: 120px;
-        bottom: -50px;
-    }
 }
 
 /* 動畫效果 */
-.btn, .card {
-    transition: all 0.3s ease;
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.btn:hover {
-    transform: translateY(-2px);
+.fade-in {
+    animation: fadeIn 0.8s ease forwards;
 }
 
-/* 統計數據頁面 */
-.display-4 {
-    font-weight: 300;
-    color: #fff;
+.delay-1 {
+    animation-delay: 0.2s;
 }
 
-/* 頁面內容 */
-.main-content {
-    position: relative;
-    z-index: 1;
-    background-color: rgba(255, 255, 255, 0.95);
-    border-radius: 0.5rem;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 2rem;
-    margin-bottom: 2rem;
+.delay-2 {
+    animation-delay: 0.4s;
 }
 
-/* 內容區塊間距 */
-.content-section {
-    margin-top: 2rem;
+.delay-3 {
+    animation-delay: 0.6s;
 }
