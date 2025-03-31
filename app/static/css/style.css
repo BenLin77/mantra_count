@@ -124,6 +124,15 @@ body {
     object-fit: cover;
 }
 
+/* 小型圖片樣式 */
+.small-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
 /* 統計卡片 */
 .stats-card {
     text-align: center;
@@ -164,5 +173,10 @@ body {
     
     .stats-count {
         font-size: 2.5rem;
+    }
+    
+    .small-image {
+        width: 60px;
+        height: 60px;
     }
 }
