@@ -76,19 +76,22 @@ body {
     color: #6f42c1;
 }
 
-/* 簡潔的頁面標題區 */
+/* 優化的頁面標題區 */
 .page-header {
     text-align: center;
     padding: 2rem 0;
     margin-bottom: 2rem;
     background-color: #fff;
     border-bottom: 1px solid #eee;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .page-title {
     color: #6f42c1;
     margin-bottom: 0.5rem;
     font-weight: 600;
+    font-size: 2rem;
 }
 
 .page-description {
@@ -178,5 +181,13 @@ body {
     .small-image {
         width: 60px;
         height: 60px;
+    }
+    
+    .page-title {
+        font-size: 1.8rem;
+    }
+    
+    .page-description {
+        font-size: 1rem;
     }
 }
