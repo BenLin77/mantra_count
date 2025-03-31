@@ -76,10 +76,55 @@ body {
 
 /* 首頁樣式 */
 .jumbotron {
-    background-color: #fff;
+    background-color: rgba(255, 255, 255, 0.85);
     border-radius: 0.5rem;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     padding: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+/* 背景圖片樣式 */
+.hero-section {
+    position: relative;
+    padding: 3rem 0;
+    background: url('../img/temple.jpg') no-repeat center center;
+    background-size: cover;
+    background-attachment: fixed;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    margin-top: -1.5rem;
+    margin-bottom: 2rem;
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 0;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+}
+
+/* 人物圖片樣式 */
+.lama-image {
+    position: relative;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.lama-image img {
+    max-width: 250px;
+    border-radius: 50%;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    border: 3px solid #fff;
 }
 
 /* 響應式調整 */
@@ -90,6 +135,14 @@ body {
     
     .card-body {
         padding: 1rem;
+    }
+    
+    .hero-section {
+        padding: 2rem 0;
+    }
+    
+    .lama-image img {
+        max-width: 180px;
     }
 }
 
@@ -106,4 +159,15 @@ body {
 .display-4 {
     font-weight: 300;
     color: #6f42c1;
+}
+
+/* 頁面背景 */
+.main-content {
+    position: relative;
+    z-index: 1;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 0.5rem;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
 }
