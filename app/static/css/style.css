@@ -84,47 +84,62 @@ body {
     z-index: 1;
 }
 
-/* 背景圖片樣式 */
-.hero-section {
+/* 封面圖片樣式 - 類似Facebook的封面照片 */
+.cover-section {
     position: relative;
-    padding: 3rem 0;
-    background: url('../img/temple.jpg') no-repeat center center;
-    background-size: cover;
-    background-attachment: fixed;
-    color: #fff;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    height: 350px;
+    margin-bottom: 80px;
     margin-top: -1.5rem;
-    margin-bottom: 2rem;
+    overflow: hidden;
 }
 
-.hero-section::before {
-    content: '';
+.cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
     position: absolute;
     top: 0;
-    right: 0;
-    bottom: 0;
     left: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 0;
 }
 
-.hero-content {
-    position: relative;
+.cover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
     z-index: 1;
 }
 
-/* 人物圖片樣式 */
-.lama-image {
+.cover-content {
     position: relative;
+    z-index: 2;
+    color: #fff;
     text-align: center;
-    margin-bottom: 2rem;
+    padding-top: 120px;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
 }
 
-.lama-image img {
-    max-width: 250px;
+/* 人物圖片樣式 - 類似Facebook的頭像 */
+.profile-image-container {
+    position: absolute;
+    bottom: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    border: 5px solid #fff;
     border-radius: 50%;
+    overflow: hidden;
+    width: 150px;
+    height: 150px;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    border: 3px solid #fff;
+}
+
+.profile-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 /* 響應式調整 */
@@ -137,12 +152,19 @@ body {
         padding: 1rem;
     }
     
-    .hero-section {
-        padding: 2rem 0;
+    .cover-section {
+        height: 250px;
+        margin-bottom: 70px;
     }
     
-    .lama-image img {
-        max-width: 180px;
+    .cover-content {
+        padding-top: 80px;
+    }
+    
+    .profile-image-container {
+        width: 120px;
+        height: 120px;
+        bottom: -50px;
     }
 }
 
@@ -158,10 +180,10 @@ body {
 /* 統計數據頁面 */
 .display-4 {
     font-weight: 300;
-    color: #6f42c1;
+    color: #fff;
 }
 
-/* 頁面背景 */
+/* 頁面內容 */
 .main-content {
     position: relative;
     z-index: 1;
@@ -170,4 +192,9 @@ body {
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     padding: 2rem;
     margin-bottom: 2rem;
+}
+
+/* 內容區塊間距 */
+.content-section {
+    margin-top: 2rem;
 }
