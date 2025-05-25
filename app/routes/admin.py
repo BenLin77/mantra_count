@@ -1,12 +1,16 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_file
 from flask_login import login_required, current_user
 from app import db
 from app.models.user import User
 from app.models.mantra import Mantra, MantraRecord
 from app.forms.mantra import MantraCreateForm, MantraEditForm
+from app.forms.calendar import CalendarForm
+from app.utils.calendar_generator import CalendarGenerator
 from functools import wraps
 from sqlalchemy import func
 from datetime import datetime, timedelta
+import os
+import tempfile
 
 bp = Blueprint('admin', __name__)
 
@@ -253,3 +257,30 @@ def statistics():
                           mantra_stats=mantra_stats,
                           user_stats=user_stats,
                           daily_stats=daily_stats)
+
+@bp.route('/calendar', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def calendar():
+    """行事曆生成頁面"""
+    form = CalendarForm()
+    
+    if form.validate_on_submit():
+        year = form.year.data
+        
+        # 創建臨時文件
+        temp_dir = tempfile.gettempdir()
+        filename = os.path.join(temp_dir, f'行事曆_{year-1911}年.docx')
+        
+        # 生成行事曆文件
+        CalendarGenerator.create_calendar_docx(year, filename)
+        
+        # 發送文件
+        return send_file(
+            filename,
+            as_attachment=True,
+            download_name=f'行事曆_{year-1911}年.docx',
+            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
+    
+    return render_template('admin/calendar.html', form=form)
