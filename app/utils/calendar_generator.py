@@ -194,37 +194,42 @@ class CalendarGenerator:
             month_assignments = Ceremony.assign_ceremonies_to_fridays(year, month)
             ceremony_assignments[month] = month_assignments
         
-        # 填充法會日期
+        # 填充法會日期 - 先組織數據再寫入表格
+        ceremony_rows = {
+            '大圓滿前行共修': 1,
+            '綠度母共修': 2,
+            '破瓦法共修': 3
+        }
+        
+        # 組織每個月每個法會的日期
+        month_ceremony_dates = {}
         for month in range(1, 13):
-            assignments = ceremony_assignments[month]
-            
-            # 根據法會名稱決定行位置
-            ceremony_rows = {
-                '大圓滿前行共修': 1,
-                '綠度母共修': 2,
-                '破瓦法共修': 3
+            month_ceremony_dates[month] = {
+                '大圓滿前行共修': [],
+                '綠度母共修': [],
+                '破瓦法共修': []
             }
             
+            assignments = ceremony_assignments[month]
             for assignment in assignments:
                 ceremony = assignment['ceremony']
                 ceremony_name = ceremony.name
                 date_obj = assignment['date']
                 
                 if ceremony_name in ceremony_rows:
-                    row = ceremony_rows[ceremony_name]
-                    cell = table.cell(row, month)
-                    
                     # 格式化日期顯示（包含星期）
                     weekdays = ['一', '二', '三', '四', '五', '六', '日']
                     weekday = weekdays[date_obj.weekday()]
                     date_text = f'{date_obj.day}日({weekday})'
-                    
-                    # 如果單元格已有內容，則添加新行
-                    if cell.text:
-                        cell.text += f'\n{date_text}'
-                    else:
-                        cell.text = date_text
-                    
+                    month_ceremony_dates[month][ceremony_name].append(date_text)
+        
+        # 寫入表格
+        for month in range(1, 13):
+            for ceremony_name, row in ceremony_rows.items():
+                dates = month_ceremony_dates[month][ceremony_name]
+                if dates:
+                    cell = table.cell(row, month)
+                    cell.text = '\n'.join(dates)
                     cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
                     cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
         
