@@ -5,8 +5,8 @@
 {% block content %}
 <div class="container-fluid">
     <div class="text-center mb-4">
-        <h3>{{ year }}年法會共修行程表</h3>
-        <p class="text-muted">{{ year }}年固定共修/年度法會行程</p>
+        <h3>台北市顯教十方蓮聯佛學會 {{ year }} 年度共修、法會活動行程表</h3>
+        <p class="text-muted">{{ year }} 年度固定共修 / 年度法會行事曆</p>
         
         <div class="mt-3">
             <a href="{{ url_for('admin.ceremony_calendar', year=year-1) }}" class="btn btn-outline-primary btn-sm">{{ year-1 }}年</a>
@@ -17,10 +17,10 @@
 
     <!-- 主要表格 -->
     <div class="table-responsive">
-        <table class="table table-bordered table-sm">
+        <table class="table table-bordered ceremony-table">
             <thead>
-                <tr class="table-primary text-center">
-                    <th style="width: 120px; vertical-align: middle;">項目</th>
+                <tr class="table-header text-center">
+                    <th class="item-column">項目</th>
                     <th>一月</th>
                     <th>二月</th>
                     <th>三月</th>
@@ -36,19 +36,19 @@
                 </tr>
             </thead>
             <tbody>
-                <!-- 第一個法會 -->
+                <!-- 大圓滿前行共修 -->
                 <tr>
-                    <td class="font-weight-bold text-center ceremony-1" style="background-color: #FFE6E6;">
-                        大圓滿前行<br>共修
+                    <td class="item-cell ceremony-1">
+                        大圓滿<br>前行共<br>修上師<br>文集導<br>讀
                     </td>
                     {% for month in range(1, 13) %}
-                    <td class="text-center">
+                    <td class="date-cell">
                         {% set month_assignments = yearly_schedule.get(month, []) %}
                         {% for assignment in month_assignments %}
                             {% if assignment.ceremony.ceremony_order == 1 %}
-                                <div class="ceremony-date">
+                                <div class="date-item">
                                     {{ assignment.date.day }}日<br>
-                                    <small class="text-muted">{{ assignment.date.strftime('%d') }}日</small>
+                                    <small>({{ ['一', '二', '三', '四', '五', '六', '日'][assignment.date.weekday()] }})</small>
                                 </div>
                             {% endif %}
                         {% endfor %}
@@ -56,19 +56,19 @@
                     {% endfor %}
                 </tr>
                 
-                <!-- 第二個法會 -->
+                <!-- 綠度母共修 -->
                 <tr>
-                    <td class="font-weight-bold text-center ceremony-2" style="background-color: #E6F7FF;">
-                        綠度母<br>共修
+                    <td class="item-cell ceremony-2">
+                        綠度母<br>共修上<br>師文集<br>導讀
                     </td>
                     {% for month in range(1, 13) %}
-                    <td class="text-center">
+                    <td class="date-cell">
                         {% set month_assignments = yearly_schedule.get(month, []) %}
                         {% for assignment in month_assignments %}
                             {% if assignment.ceremony.ceremony_order == 2 %}
-                                <div class="ceremony-date">
+                                <div class="date-item">
                                     {{ assignment.date.day }}日<br>
-                                    <small class="text-muted">{{ assignment.date.strftime('%d') }}日</small>
+                                    <small>({{ ['一', '二', '三', '四', '五', '六', '日'][assignment.date.weekday()] }})</small>
                                 </div>
                             {% endif %}
                         {% endfor %}
@@ -76,19 +76,19 @@
                     {% endfor %}
                 </tr>
                 
-                <!-- 第三個法會 -->
+                <!-- 破瓦法共修 -->
                 <tr>
-                    <td class="font-weight-bold text-center ceremony-3" style="background-color: #F6FFED;">
-                        破瓦法<br>共修
+                    <td class="item-cell ceremony-3">
+                        破瓦法<br>共修上<br>師文集<br>導讀
                     </td>
                     {% for month in range(1, 13) %}
-                    <td class="text-center">
+                    <td class="date-cell">
                         {% set month_assignments = yearly_schedule.get(month, []) %}
                         {% for assignment in month_assignments %}
                             {% if assignment.ceremony.ceremony_order == 3 %}
-                                <div class="ceremony-date">
+                                <div class="date-item">
                                     {{ assignment.date.day }}日<br>
-                                    <small class="text-muted">{{ assignment.date.strftime('%d') }}日</small>
+                                    <small>({{ ['一', '二', '三', '四', '五', '六', '日'][assignment.date.weekday()] }})</small>
                                 </div>
                             {% endif %}
                         {% endfor %}
@@ -97,29 +97,30 @@
                 </tr>
                 
                 <!-- 分隔行 -->
-                <tr style="height: 10px;">
-                    <td colspan="13" style="background-color: #f8f9fa; border: none;"></td>
+                <tr class="separator-row">
+                    <td colspan="13"></td>
                 </tr>
                 
-                <!-- 每月總覽 -->
+                <!-- 蓮師會供安行每月實修年度法會 -->
                 <tr>
-                    <td class="font-weight-bold text-center" style="background-color: #FFF2E6;">
-                        每月週五<br>法會總覽
+                    <td class="item-cell special-ceremony">
+                        蓮師會<br>供<br>安行每<br>月實修<br>年度法<br>會
                     </td>
                     {% for month in range(1, 13) %}
-                    <td style="padding: 8px; vertical-align: top;">
-                        {% set month_assignments = yearly_schedule.get(month, []) %}
-                        {% for assignment in month_assignments %}
-                            <div class="small-ceremony-item ceremony-color-{{ assignment.ceremony.ceremony_order }}">
-                                <strong>{{ assignment.date.day }}日</strong>
-                                <span class="ceremony-name">
-                                    {% if assignment.ceremony.ceremony_order == 1 %}前行
-                                    {% elif assignment.ceremony.ceremony_order == 2 %}度母
-                                    {% elif assignment.ceremony.ceremony_order == 3 %}破瓦
-                                    {% endif %}
-                                </span>
-                            </div>
-                        {% endfor %}
+                    <td class="date-cell">
+                        <!-- 暫時顯示示例，可以根據需要調整 -->
+                        {% if month == 1 %}9日{% endif %}
+                        {% if month == 2 %}7日{% endif %}
+                        {% if month == 3 %}9日{% endif %}
+                        {% if month == 4 %}7日{% endif %}
+                        {% if month == 5 %}7日<br><small>(三)</small><br><br>22日<br><small>(四)</small>{% endif %}
+                        {% if month == 6 %}5日{% endif %}
+                        {% if month == 7 %}4日{% endif %}
+                        {% if month == 8 %}3日{% endif %}
+                        {% if month == 9 %}1日{% endif %}
+                        {% if month == 10 %}1日<br>30日{% endif %}
+                        {% if month == 11 %}29日{% endif %}
+                        {% if month == 12 %}29日{% endif %}
                     </td>
                     {% endfor %}
                 </tr>
@@ -129,113 +130,192 @@
 
     <!-- 說明 -->
     <div class="row mt-4">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-body">
-                    <h6>歡迎大家踴躍參加，學習資糧，同霑法益。</h6>
-                    <p class="mb-1"><strong>備註：</strong>年度共修後改法會聚覽，若遇不可抗力因素異動，請以北市心久告為主。</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h6>法會時間</h6>
-                    <p class="mb-1">每週五晚上 19:30-21:00</p>
-                    <p class="mb-1">地點：台北市佛金剛密佛學會</p>
-                </div>
-            </div>
+        <div class="col-12 text-center">
+            <p class="welcome-text">歡迎大家踴躍參加，學習資糧，同霑法益。</p>
+            <p class="note-text">
+                <strong>備註：</strong>年度共修後改法會聚覽，若遇不可抗力因素異動，請以台北市心久告為主。
+            </p>
         </div>
     </div>
 
     <!-- 返回按鈕 -->
-    <div class="mt-4">
-        <a href="{{ url_for('admin.ceremonies') }}" class="btn btn-secondary">返回法會管理</a>
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('admin.ceremonies') }}" class="btn btn-secondary mr-2">返回法會管理</a>
         <a href="{{ url_for('admin.index') }}" class="btn btn-primary">返回管理首頁</a>
     </div>
 </div>
 
 <style>
-/* 表格樣式 */
-.table-bordered td, .table-bordered th {
-    border: 1px solid #666;
+/* 整體表格樣式 */
+.ceremony-table {
+    width: 100%;
+    margin: 0 auto;
+    border-collapse: collapse;
+    font-family: 'Microsoft JhengHei', Arial, sans-serif;
+}
+
+.ceremony-table td, 
+.ceremony-table th {
+    border: 2px solid #333;
     padding: 8px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 14px;
+    line-height: 1.3;
+}
+
+/* 表頭樣式 */
+.table-header {
+    background-color: #4472C4;
+    color: white;
+    font-weight: bold;
     font-size: 14px;
 }
 
-.table th {
-    background-color: #e3f2fd;
-    text-align: center;
+.table-header th {
+    padding: 12px 8px;
+}
+
+.item-column {
+    width: 120px;
+    min-width: 100px;
+}
+
+/* 項目列樣式 */
+.item-cell {
     font-weight: bold;
+    font-size: 13px;
+    line-height: 1.2;
+    padding: 10px 5px;
+    word-break: keep-all;
+    writing-mode: horizontal-tb;
 }
 
-/* 法會項目樣式 */
 .ceremony-1 {
-    background-color: #FFE6E6 !important;
-}
-
-.ceremony-2 {
-    background-color: #E6F7FF !important;
-}
-
-.ceremony-3 {
-    background-color: #F6FFED !important;
-}
-
-/* 小型法會項目 */
-.small-ceremony-item {
-    margin-bottom: 5px;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-size: 12px;
-    display: block;
-}
-
-.ceremony-color-1 {
     background-color: #FFE6E6;
 }
 
-.ceremony-color-2 {
+.ceremony-2 {
     background-color: #E6F7FF;
 }
 
-.ceremony-color-3 {
+.ceremony-3 {
     background-color: #F6FFED;
 }
 
-.ceremony-name {
-    font-size: 10px;
+.special-ceremony {
+    background-color: #FFF2CC;
 }
 
-/* 日期樣式 */
-.ceremony-date {
-    margin-bottom: 8px;
-    line-height: 1.2;
+/* 日期單元格 */
+.date-cell {
+    padding: 8px;
+    vertical-align: top;
+    min-height: 60px;
+    width: 80px;
+}
+
+.date-item {
+    margin: 4px 0;
+    line-height: 1.1;
+    font-size: 13px;
+}
+
+.date-item small {
+    font-size: 11px;
+    color: #666;
+}
+
+/* 分隔行 */
+.separator-row {
+    height: 8px;
+}
+
+.separator-row td {
+    background-color: #f8f9fa;
+    border: none;
+    padding: 0;
+}
+
+/* 文字樣式 */
+.welcome-text {
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.note-text {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 0;
 }
 
 /* 響應式設計 */
-@media (max-width: 768px) {
-    .table-responsive {
+@media (max-width: 1200px) {
+    .ceremony-table {
+        font-size: 12px;
+    }
+    
+    .item-cell {
         font-size: 11px;
     }
     
-    .small-ceremony-item {
+    .date-item {
+        font-size: 11px;
+    }
+    
+    .date-cell {
+        width: 70px;
+        padding: 6px;
+    }
+}
+
+@media (max-width: 768px) {
+    .ceremony-table {
         font-size: 10px;
     }
     
-    .ceremony-date {
-        font-size: 12px;
+    .item-cell {
+        font-size: 9px;
+        padding: 8px 3px;
+    }
+    
+    .date-item {
+        font-size: 9px;
+    }
+    
+    .date-cell {
+        width: 60px;
+        padding: 4px;
+    }
+    
+    .table-header th {
+        padding: 8px 4px;
+        font-size: 11px;
     }
 }
 
 /* 列印樣式 */
 @media print {
-    .btn, .card {
+    .btn, .mt-4 {
         display: none !important;
     }
     
-    .table {
-        font-size: 12px;
+    .ceremony-table {
+        width: 100%;
+        page-break-inside: avoid;
+    }
+    
+    .ceremony-table td, 
+    .ceremony-table th {
+        border: 1px solid #000 !important;
+        padding: 6px !important;
+        font-size: 12px !important;
+    }
+    
+    .table-header {
+        background-color: #ddd !important;
+        color: #000 !important;
     }
 }
 </style>
