@@ -3,12 +3,13 @@
 
 """
 手動數據庫更新腳本
-用於檢查並創建所有必要的表
+用於檢查並創建所有必要的表和管理員帳號
 """
 
 from app import create_app, db
 from sqlalchemy import text
 import logging
+import os
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -87,6 +88,55 @@ def manual_db_update():
             
             logger.info("數據庫結構檢查完成")
             
+            # 檢查並創建管理員帳號
+            from app.models.user import User
+            
+            admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
+            admin_password = os.environ.get('ADMIN_PASSWORD', '!Changleisi666')
+            admin_email = os.environ.get('ADMIN_EMAIL', 'bookwormkobo521@gmail.com')
+            
+            admin_user = User.query.filter_by(username=admin_username).first()
+            if not admin_user:
+                logger.info("創建管理員帳號...")
+                admin_user = User(
+                    username=admin_username,
+                    email=admin_email,
+                    is_admin=True,
+                    email_verified=True  # 管理員帳號預設為已驗證
+                )
+                admin_user.set_password(admin_password)
+                db.session.add(admin_user)
+                db.session.commit()
+                logger.info(f"管理員帳號創建成功: {admin_username}")
+            else:
+                # 確保現有管理員具有管理員權限
+                if not admin_user.is_admin:
+                    admin_user.is_admin = True
+                    db.session.commit()
+                    logger.info(f"已將用戶 {admin_username} 設為管理員")
+                else:
+                    logger.info(f"管理員帳號已存在: {admin_username}")
+            
+            # 檢查並創建預設咒語
+            from app.models.mantra import Mantra
+            
+            default_mantra = Mantra.query.filter_by(is_default=True).first()
+            if not default_mantra:
+                logger.info("創建預設咒語...")
+                default_mantra = Mantra(
+                    name='蓮花生大士心咒',
+                    sanskrit='ॐ ཨཱཿ ཧཱུྃ བཛྲ གུ རུ པདྨ སིདྡྷི ཧཱུྃ',
+                    chinese='嗡阿吽 班雜 咕嚕 貝瑪 悉地吽',
+                    description='蓮花生大士心咒是藏傳佛教中最重要的咒語之一，也稱為十二字咒或金剛上師心咒。',
+                    benefits='持誦此咒可以消除障礙、增長智慧、獲得加持，並與蓮師相應。',
+                    is_default=True
+                )
+                db.session.add(default_mantra)
+                db.session.commit()
+                logger.info("預設咒語創建成功")
+            else:
+                logger.info("預設咒語已存在")
+            
             # 創建示例法會
             from app.models.ceremony import Ceremony
             from datetime import datetime, timedelta
@@ -125,7 +175,21 @@ def manual_db_update():
             else:
                 logger.info("法會已存在，跳過創建")
             
-            # 最終檢查
+            # 最終檢查和報告
+            user_count = User.query.count()
+            admin_count = User.query.filter_by(is_admin=True).count()
+            mantra_count = Mantra.query.count()
+            ceremony_count = Ceremony.query.count()
+            
+            logger.info("=== 數據庫初始化完成 ===")
+            logger.info(f"用戶總數: {user_count}")
+            logger.info(f"管理員數量: {admin_count}")
+            logger.info(f"咒語數量: {mantra_count}")
+            logger.info(f"法會數量: {ceremony_count}")
+            logger.info(f"管理員帳號: {admin_username}")
+            logger.info(f"管理員密碼: {admin_password}")
+            
+            # 最終檢查表結構
             with db.engine.connect() as connection:
                 result = connection.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
                 final_tables = [row[0] for row in result.fetchall()]
