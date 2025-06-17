@@ -12,7 +12,7 @@ class Ceremony(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 與唸誦記錄的關聯
-    records = db.relationship('MantraRecord', backref='ceremony', lazy='dynamic')
+    records = db.relationship('MantraRecord', backref='ceremony', lazy='dynamic', foreign_keys='MantraRecord.ceremony_id')
     
     def __repr__(self):
         return f'<法會 {self.name}>'

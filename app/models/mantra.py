@@ -40,9 +40,9 @@ class Mantra(db.Model):
 
 class MantraRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    mantra_id = db.Column(db.Integer, db.ForeignKey('mantra.id'))
-    ceremony_id = db.Column(db.Integer, db.ForeignKey('ceremony.id'), nullable=True)  # 法會關聯
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', name='fk_mantra_record_user_id'))
+    mantra_id = db.Column(db.Integer, db.ForeignKey('mantra.id', name='fk_mantra_record_mantra_id'))
+    ceremony_id = db.Column(db.Integer, db.ForeignKey('ceremony.id', name='fk_mantra_record_ceremony_id'), nullable=True)  # 法會關聯
     count = db.Column(db.Integer, default=0)  # 唸誦次數
     record_date = db.Column(db.Date, default=datetime.utcnow().date)  # 記錄日期
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
