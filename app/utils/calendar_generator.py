@@ -7,6 +7,7 @@ from docx.oxml import parse_xml
 import lunardate
 from datetime import datetime, timedelta, date
 import calendar
+from app.models.ceremony import Ceremony
 
 class CalendarGenerator:
     """行事曆生成器"""
@@ -135,7 +136,7 @@ class CalendarGenerator:
         # 填充行標題
         row_titles = [
             '大圓滿前行共修 上師文集導讀',
-            '數度母共修 上師文集導讀',
+            '綠度母共修 上師文集導讀',
             '破瓦法共修 上師文集導讀',
             '蓮師薈供',
             '空行母薈供',
@@ -187,20 +188,45 @@ class CalendarGenerator:
             cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
             cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
         
-        # 填充每週五日期（前三個活動）
-        for row in range(1, 4):
-            for date_obj in special_dates['fridays']:
-                month = date_obj.month
-                cell = table.cell(row, month)
+        # 使用法會輪替系統填充週五日期
+        ceremony_assignments = {}
+        for month in range(1, 13):
+            month_assignments = Ceremony.assign_ceremonies_to_fridays(year, month)
+            ceremony_assignments[month] = month_assignments
+        
+        # 填充法會日期
+        for month in range(1, 13):
+            assignments = ceremony_assignments[month]
+            
+            # 根據法會名稱決定行位置
+            ceremony_rows = {
+                '大圓滿前行共修': 1,
+                '綠度母共修': 2,
+                '破瓦法共修': 3
+            }
+            
+            for assignment in assignments:
+                ceremony = assignment['ceremony']
+                ceremony_name = ceremony.name
+                date_obj = assignment['date']
                 
-                # 如果單元格已有內容，則添加新行
-                if cell.text:
-                    cell.text += f'\n{date_obj.day}日'
-                else:
-                    cell.text = f'{date_obj.day}日'
-                
-                cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-                cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+                if ceremony_name in ceremony_rows:
+                    row = ceremony_rows[ceremony_name]
+                    cell = table.cell(row, month)
+                    
+                    # 格式化日期顯示（包含星期）
+                    weekdays = ['一', '二', '三', '四', '五', '六', '日']
+                    weekday = weekdays[date_obj.weekday()]
+                    date_text = f'{date_obj.day}日({weekday})'
+                    
+                    # 如果單元格已有內容，則添加新行
+                    if cell.text:
+                        cell.text += f'\n{date_text}'
+                    else:
+                        cell.text = date_text
+                    
+                    cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+                    cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
         
         # 添加頁腳說明
         footer = doc.add_paragraph()
