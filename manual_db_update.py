@@ -50,6 +50,7 @@ def manual_db_update():
                             start_date DATE NOT NULL,
                             end_date DATE NOT NULL,
                             is_active BOOLEAN DEFAULT 1,
+                            ceremony_order INTEGER DEFAULT 0,
                             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
                         )
                     """))
@@ -57,6 +58,17 @@ def manual_db_update():
                 logger.info("ceremony表創建成功")
             else:
                 logger.info("ceremony表已存在")
+                # 檢查是否需要添加ceremony_order列
+                with db.engine.connect() as connection:
+                    result = connection.execute(text("PRAGMA table_info(ceremony)"))
+                    ceremony_columns = [row[1] for row in result.fetchall()]
+                    
+                if 'ceremony_order' not in ceremony_columns:
+                    logger.info("添加ceremony_order列到ceremony表...")
+                    with db.engine.connect() as connection:
+                        connection.execute(text("ALTER TABLE ceremony ADD COLUMN ceremony_order INTEGER DEFAULT 0"))
+                        connection.commit()
+                    logger.info("ceremony_order列添加成功")
             
             # 檢查mantra_record表
             if 'mantra_record' not in existing_tables:
@@ -137,43 +149,80 @@ def manual_db_update():
             else:
                 logger.info("預設咒語已存在")
             
-            # 創建示例法會
+            # 創建三個輪替法會
             from app.models.ceremony import Ceremony
             from datetime import datetime, timedelta
             
-            # 檢查是否需要創建示例法會
-            ceremony_count = Ceremony.query.count()
-            logger.info(f"現有法會數量: {ceremony_count}")
+            # 定義三個法會
+            ceremony_definitions = [
+                {
+                    'name': '大圓滿前行共修',
+                    'description': '大圓滿前行共修，修習四共同前行和四不共同前行，為大圓滿正行做準備',
+                    'order': 1
+                },
+                {
+                    'name': '綠度母共修',
+                    'description': '綠度母共修，修習二十一度母禮讚文，祈求度母加持，遣除違緣障礙',
+                    'order': 2
+                },
+                {
+                    'name': '破瓦法共修',
+                    'description': '破瓦法共修，修習往生法，為臨終時刻做準備，往生淨土',
+                    'order': 3
+                }
+            ]
             
-            if ceremony_count == 0:
-                logger.info("創建示例法會...")
+            # 檢查是否需要創建法會
+            existing_ceremony_count = Ceremony.query.count()
+            if existing_ceremony_count == 0:
+                logger.info("創建三個輪替法會...")
                 
                 today = datetime.today().date()
+                # 設定一個較長的時間範圍，涵蓋整年
+                start_date = datetime(today.year, 1, 1).date()
+                end_date = datetime(today.year, 12, 31).date()
                 
-                # 蓮師薈供法會
-                ceremony1 = Ceremony(
-                    name='蓮師薈供法會',
-                    description='每月蓮花生大士薈供法會，殊勝功德，共同修持蓮師心咒',
-                    start_date=today,
-                    end_date=today + timedelta(days=30),
-                    is_active=True
-                )
-                db.session.add(ceremony1)
-                
-                # 阿彌陀佛法會
-                ceremony2 = Ceremony(
-                    name='阿彌陀佛法會',
-                    description='阿彌陀佛念佛法會，專修淨土法門，共同念佛求生極樂',
-                    start_date=today + timedelta(days=31),
-                    end_date=today + timedelta(days=60),
-                    is_active=True
-                )
-                db.session.add(ceremony2)
+                for ceremony_def in ceremony_definitions:
+                    ceremony = Ceremony(
+                        name=ceremony_def['name'],
+                        description=ceremony_def['description'],
+                        start_date=start_date,
+                        end_date=end_date,
+                        is_active=True,
+                        ceremony_order=ceremony_def['order']
+                    )
+                    db.session.add(ceremony)
                 
                 db.session.commit()
-                logger.info("示例法會創建完成")
+                logger.info("三個輪替法會創建完成")
             else:
-                logger.info("法會已存在，跳過創建")
+                logger.info("法會已存在，檢查是否需要更新...")
+                
+                # 檢查是否有正確的三個法會
+                for ceremony_def in ceremony_definitions:
+                    existing = Ceremony.query.filter_by(name=ceremony_def['name']).first()
+                    if not existing:
+                        logger.info(f"創建缺失的法會: {ceremony_def['name']}")
+                        today = datetime.today().date()
+                        start_date = datetime(today.year, 1, 1).date()
+                        end_date = datetime(today.year, 12, 31).date()
+                        
+                        ceremony = Ceremony(
+                            name=ceremony_def['name'],
+                            description=ceremony_def['description'],
+                            start_date=start_date,
+                            end_date=end_date,
+                            is_active=True,
+                            ceremony_order=ceremony_def['order']
+                        )
+                        db.session.add(ceremony)
+                    else:
+                        # 更新順序
+                        if existing.ceremony_order != ceremony_def['order']:
+                            existing.ceremony_order = ceremony_def['order']
+                            logger.info(f"更新法會順序: {ceremony_def['name']} -> {ceremony_def['order']}")
+                
+                db.session.commit()
             
             # 最終檢查和報告
             user_count = User.query.count()
@@ -188,6 +237,19 @@ def manual_db_update():
             logger.info(f"法會數量: {ceremony_count}")
             logger.info(f"管理員帳號: {admin_username}")
             logger.info(f"管理員密碼: {admin_password}")
+            
+            # 顯示法會輪替安排
+            logger.info("=== 法會輪替安排 ===")
+            ceremonies = Ceremony.query.order_by(Ceremony.ceremony_order).all()
+            for ceremony in ceremonies:
+                logger.info(f"順序 {ceremony.ceremony_order}: {ceremony.name}")
+            
+            # 示例：顯示當前月份的法會安排
+            today = datetime.today()
+            current_month_assignments = Ceremony.assign_ceremonies_to_fridays(today.year, today.month)
+            logger.info(f"=== {today.year}年{today.month}月法會安排 ===")
+            for assignment in current_month_assignments:
+                logger.info(f"{assignment['formatted_date']}: {assignment['ceremony'].name}")
             
             # 最終檢查表結構
             with db.engine.connect() as connection:

@@ -9,6 +9,7 @@ class Ceremony(db.Model):
     start_date = db.Column(db.Date, nullable=False)  # 開始日期
     end_date = db.Column(db.Date, nullable=False)  # 結束日期
     is_active = db.Column(db.Boolean, default=True)  # 是否啟用
+    ceremony_order = db.Column(db.Integer, default=0)  # 法會順序，用於輪替
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 與唸誦記錄的關聯
@@ -42,4 +43,49 @@ class Ceremony(db.Model):
     def get_current_ceremony():
         """獲取當前日期的法會"""
         today = datetime.utcnow().date()
-        return Ceremony.get_active_ceremony_for_date(today) 
+        return Ceremony.get_active_ceremony_for_date(today)
+    
+    @staticmethod
+    def get_fridays_in_month(year, month):
+        """獲取指定年月的所有週五日期"""
+        fridays = []
+        # 找到該月第一天
+        first_day = datetime(year, month, 1).date()
+        # 找到該月最後一天
+        if month == 12:
+            last_day = datetime(year + 1, 1, 1).date() - timedelta(days=1)
+        else:
+            last_day = datetime(year, month + 1, 1).date() - timedelta(days=1)
+        
+        # 找到第一個週五
+        current_date = first_day
+        while current_date.weekday() != 4:  # 4 = 週五
+            current_date += timedelta(days=1)
+        
+        # 收集所有週五
+        while current_date <= last_day:
+            fridays.append(current_date)
+            current_date += timedelta(days=7)
+        
+        return fridays
+    
+    @staticmethod
+    def assign_ceremonies_to_fridays(year, month):
+        """將法會分配到指定年月的週五，返回分配結果"""
+        fridays = Ceremony.get_fridays_in_month(year, month)
+        ceremonies = Ceremony.query.filter_by(is_active=True).order_by(Ceremony.ceremony_order).all()
+        
+        if not ceremonies:
+            return []
+        
+        assignments = []
+        for i, friday in enumerate(fridays):
+            ceremony = ceremonies[i % len(ceremonies)]  # 輪替分配
+            assignments.append({
+                'date': friday,
+                'ceremony': ceremony,
+                'weekday': friday.strftime('%A'),
+                'formatted_date': f"{friday.strftime('%m月%d日')} ({['週一', '週二', '週三', '週四', '週五', '週六', '週日'][friday.weekday()]})"
+            })
+        
+        return assignments 

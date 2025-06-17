@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}法會行事曆 - 管理員{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>{{ year }}年法會共修行程表</h2>
+                <div>
+                    <a href="{{ url_for('admin.ceremony_calendar', year=year-1) }}" class="btn btn-outline-primary">{{ year-1 }}年</a>
+                    <span class="mx-2">{{ year }}年</span>
+                    <a href="{{ url_for('admin.ceremony_calendar', year=year+1) }}" class="btn btn-outline-primary">{{ year+1 }}年</a>
+                </div>
+            </div>
+
+            <!-- 法會說明 -->
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>法會輪替說明</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% for ceremony in ceremonies %}
+                                <div class="col-md-4">
+                                    <div class="border p-2 mb-2 ceremony-card-{{ loop.index0 }}">
+                                        <strong>{{ ceremony.ceremony_order }}. {{ ceremony.name }}</strong>
+                                        <br><small class="text-muted">{{ ceremony.description }}</small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <p class="mt-2 text-muted">
+                                <small>每月週五輪替進行上述三種法會，按順序循環分配。</small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 年度行事曆表格 -->
+            <div class="card">
+                <div class="card-header">
+                    <h5>{{ year }}年法會共修行程表</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-sm">
+                            <thead>
+                                <tr class="table-primary">
+                                    <th style="width: 120px;">項目</th>
+                                    <th>一月</th>
+                                    <th>二月</th>
+                                    <th>三月</th>
+                                    <th>四月</th>
+                                    <th>五月</th>
+                                    <th>六月</th>
+                                    <th>七月</th>
+                                    <th>八月</th>
+                                    <th>九月</th>
+                                    <th>十月</th>
+                                    <th>十一月</th>
+                                    <th>十二月</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ceremony in ceremonies %}
+                                <tr>
+                                    <td class="font-weight-bold ceremony-row-{{ loop.index0 }}">
+                                        {{ ceremony.name.replace('共修', '').replace('法', '') }}
+                                    </td>
+                                    {% for month in range(1, 13) %}
+                                    <td style="vertical-align: top; padding: 8px;">
+                                        {% set month_assignments = yearly_schedule.get(month, []) %}
+                                        {% for assignment in month_assignments %}
+                                            {% if assignment.ceremony.id == ceremony.id %}
+                                                <div class="mb-1">
+                                                    <small>{{ assignment.date.strftime('%d') }}日</small>
+                                                    <br>
+                                                    <small class="text-muted">({{ ['週一', '週二', '週三', '週四', '週五', '週六', '週日'][assignment.date.weekday()] }})</small>
+                                                </div>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                                
+                                <!-- 空白行用於分隔 -->
+                                <tr style="height: 20px;">
+                                    <td colspan="13" class="separator-row"></td>
+                                </tr>
+                                
+                                <!-- 整月總覽行 -->
+                                <tr>
+                                    <td class="font-weight-bold summary-header">
+                                        每月共修<br>總覽
+                                    </td>
+                                    {% for month in range(1, 13) %}
+                                    <td style="vertical-align: top; padding: 8px;">
+                                        {% set month_assignments = yearly_schedule.get(month, []) %}
+                                        {% for assignment in month_assignments %}
+                                            <div class="mb-2 p-1 summary-item summary-item-{{ (assignment.ceremony.ceremony_order - 1) % 3 }}">
+                                                <strong>{{ assignment.date.strftime('%d') }}日 ({{ ['週一', '週二', '週三', '週四', '週五', '週六', '週日'][assignment.date.weekday()] }})</strong>
+                                                <br>
+                                                <small>{{ assignment.ceremony.name.replace('共修', '') }}</small>
+                                            </div>
+                                        {% endfor %}
+                                    </td>
+                                    {% endfor %}
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 備註 -->
+            <div class="mt-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h6>備註說明</h6>
+                        <ul class="mb-0">
+                            <li>每週五晚上 19:30-21:00 進行法會共修</li>
+                            <li>三種法會按順序輪替進行，歡迎大家共同參與</li>
+                            <li>若遇節慶假日可能調整時間，請留意最新公告</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 管理操作 -->
+            <div class="mt-4">
+                <a href="{{ url_for('admin.ceremonies') }}" class="btn btn-secondary">返回法會管理</a>
+                <a href="{{ url_for('admin.index') }}" class="btn btn-primary">返回管理首頁</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.table-sm td, .table-sm th {
+    padding: 0.3rem;
+    font-size: 0.875rem;
+}
+
+.table-bordered td {
+    border: 1px solid #dee2e6;
+}
+
+.ceremony-card-0 {
+    background-color: #FFE6E6;
+}
+
+.ceremony-card-1 {
+    background-color: #E6F7FF;
+}
+
+.ceremony-card-2 {
+    background-color: #F6FFED;
+}
+
+.ceremony-row-0 {
+    background-color: #FFE6E6;
+}
+
+.ceremony-row-1 {
+    background-color: #E6F7FF;
+}
+
+.ceremony-row-2 {
+    background-color: #F6FFED;
+}
+
+.separator-row {
+    background-color: #f8f9fa;
+}
+
+.summary-header {
+    background-color: #FFF2E6;
+}
+
+.summary-item {
+    font-size: 11px;
+    border-radius: 3px;
+}
+
+.summary-item-0 {
+    background-color: #FFE6E6;
+}
+
+.summary-item-1 {
+    background-color: #E6F7FF;
+}
+
+.summary-item-2 {
+    background-color: #F6FFED;
+}
+
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.8rem;
+    }
+}
+</style>
+{% endblock %} 

@@ -15,7 +15,7 @@
                     <div class="card-body">
                         <p><strong>用戶名：</strong> {{ user.username }}</p>
                         <p><strong>電子郵件：</strong> {{ user.email }}</p>
-                        <p><strong>註冊時間：</strong> {{ user.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <p><strong>註冊時間：</strong> {{ user.get_formatted_created_at() }}</p>
                         <p><strong>是否管理員：</strong> {% if user.is_admin %}是{% else %}否{% endif %}</p>
                     </div>
                 </div>

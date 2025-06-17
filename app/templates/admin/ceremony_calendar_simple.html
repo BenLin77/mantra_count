@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+
+{% block title %}{{ year }}年法會共修行程表 - 管理員{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="text-center mb-4">
+        <h3>{{ year }}年法會共修行程表</h3>
+        <p class="text-muted">{{ year }}年固定共修/年度法會行程</p>
+        
+        <div class="mt-3">
+            <a href="{{ url_for('admin.ceremony_calendar', year=year-1) }}" class="btn btn-outline-primary btn-sm">{{ year-1 }}年</a>
+            <span class="mx-3 font-weight-bold">{{ year }}年</span>
+            <a href="{{ url_for('admin.ceremony_calendar', year=year+1) }}" class="btn btn-outline-primary btn-sm">{{ year+1 }}年</a>
+        </div>
+    </div>
+
+    <!-- 主要表格 -->
+    <div class="table-responsive">
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr class="table-primary text-center">
+                    <th style="width: 120px; vertical-align: middle;">項目</th>
+                    <th>一月</th>
+                    <th>二月</th>
+                    <th>三月</th>
+                    <th>四月</th>
+                    <th>五月</th>
+                    <th>六月</th>
+                    <th>七月</th>
+                    <th>八月</th>
+                    <th>九月</th>
+                    <th>十月</th>
+                    <th>十一月</th>
+                    <th>十二月</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- 第一個法會 -->
+                <tr>
+                    <td class="font-weight-bold text-center ceremony-1" style="background-color: #FFE6E6;">
+                        大圓滿前行<br>共修
+                    </td>
+                    {% for month in range(1, 13) %}
+                    <td class="text-center">
+                        {% set month_assignments = yearly_schedule.get(month, []) %}
+                        {% for assignment in month_assignments %}
+                            {% if assignment.ceremony.ceremony_order == 1 %}
+                                <div class="ceremony-date">
+                                    {{ assignment.date.day }}日<br>
+                                    <small class="text-muted">{{ assignment.date.strftime('%d') }}日</small>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- 第二個法會 -->
+                <tr>
+                    <td class="font-weight-bold text-center ceremony-2" style="background-color: #E6F7FF;">
+                        綠度母<br>共修
+                    </td>
+                    {% for month in range(1, 13) %}
+                    <td class="text-center">
+                        {% set month_assignments = yearly_schedule.get(month, []) %}
+                        {% for assignment in month_assignments %}
+                            {% if assignment.ceremony.ceremony_order == 2 %}
+                                <div class="ceremony-date">
+                                    {{ assignment.date.day }}日<br>
+                                    <small class="text-muted">{{ assignment.date.strftime('%d') }}日</small>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- 第三個法會 -->
+                <tr>
+                    <td class="font-weight-bold text-center ceremony-3" style="background-color: #F6FFED;">
+                        破瓦法<br>共修
+                    </td>
+                    {% for month in range(1, 13) %}
+                    <td class="text-center">
+                        {% set month_assignments = yearly_schedule.get(month, []) %}
+                        {% for assignment in month_assignments %}
+                            {% if assignment.ceremony.ceremony_order == 3 %}
+                                <div class="ceremony-date">
+                                    {{ assignment.date.day }}日<br>
+                                    <small class="text-muted">{{ assignment.date.strftime('%d') }}日</small>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+                
+                <!-- 分隔行 -->
+                <tr style="height: 10px;">
+                    <td colspan="13" style="background-color: #f8f9fa; border: none;"></td>
+                </tr>
+                
+                <!-- 每月總覽 -->
+                <tr>
+                    <td class="font-weight-bold text-center" style="background-color: #FFF2E6;">
+                        每月週五<br>法會總覽
+                    </td>
+                    {% for month in range(1, 13) %}
+                    <td style="padding: 8px; vertical-align: top;">
+                        {% set month_assignments = yearly_schedule.get(month, []) %}
+                        {% for assignment in month_assignments %}
+                            <div class="small-ceremony-item ceremony-color-{{ assignment.ceremony.ceremony_order }}">
+                                <strong>{{ assignment.date.day }}日</strong>
+                                <span class="ceremony-name">
+                                    {% if assignment.ceremony.ceremony_order == 1 %}前行
+                                    {% elif assignment.ceremony.ceremony_order == 2 %}度母
+                                    {% elif assignment.ceremony.ceremony_order == 3 %}破瓦
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 說明 -->
+    <div class="row mt-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body">
+                    <h6>歡迎大家踴躍參加，學習資糧，同霑法益。</h6>
+                    <p class="mb-1"><strong>備註：</strong>年度共修後改法會聚覽，若遇不可抗力因素異動，請以北市心久告為主。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6>法會時間</h6>
+                    <p class="mb-1">每週五晚上 19:30-21:00</p>
+                    <p class="mb-1">地點：台北市佛金剛密佛學會</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 返回按鈕 -->
+    <div class="mt-4">
+        <a href="{{ url_for('admin.ceremonies') }}" class="btn btn-secondary">返回法會管理</a>
+        <a href="{{ url_for('admin.index') }}" class="btn btn-primary">返回管理首頁</a>
+    </div>
+</div>
+
+<style>
+/* 表格樣式 */
+.table-bordered td, .table-bordered th {
+    border: 1px solid #666;
+    padding: 8px;
+    font-size: 14px;
+}
+
+.table th {
+    background-color: #e3f2fd;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* 法會項目樣式 */
+.ceremony-1 {
+    background-color: #FFE6E6 !important;
+}
+
+.ceremony-2 {
+    background-color: #E6F7FF !important;
+}
+
+.ceremony-3 {
+    background-color: #F6FFED !important;
+}
+
+/* 小型法會項目 */
+.small-ceremony-item {
+    margin-bottom: 5px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+    display: block;
+}
+
+.ceremony-color-1 {
+    background-color: #FFE6E6;
+}
+
+.ceremony-color-2 {
+    background-color: #E6F7FF;
+}
+
+.ceremony-color-3 {
+    background-color: #F6FFED;
+}
+
+.ceremony-name {
+    font-size: 10px;
+}
+
+/* 日期樣式 */
+.ceremony-date {
+    margin-bottom: 8px;
+    line-height: 1.2;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 11px;
+    }
+    
+    .small-ceremony-item {
+        font-size: 10px;
+    }
+    
+    .ceremony-date {
+        font-size: 12px;
+    }
+}
+
+/* 列印樣式 */
+@media print {
+    .btn, .card {
+        display: none !important;
+    }
+    
+    .table {
+        font-size: 12px;
+    }
+}
+</style>
+{% endblock %} 
