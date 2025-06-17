@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h3 class="mb-0">創建新法會</h3>
+    </div>
+    <div class="card-body">
+        <form method="post" action="">
+            {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.name.label(class="form-label") }}
+                {{ form.name(class="form-control") }}
+                {% for error in form.name.errors %}
+                <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.description.label(class="form-label") }}
+                {{ form.description(class="form-control", rows=4) }}
+                {% for error in form.description.errors %}
+                <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.start_date.label(class="form-label") }}
+                        {{ form.start_date(class="form-control") }}
+                        {% for error in form.start_date.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.end_date.label(class="form-label") }}
+                        {{ form.end_date(class="form-control") }}
+                        {% for error in form.end_date.errors %}
+                        <small class="text-danger">{{ error }}</small>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group form-check">
+                {{ form.is_active(class="form-check-input") }}
+                {{ form.is_active.label(class="form-check-label") }}
+                {% for error in form.is_active.errors %}
+                <small class="text-danger">{{ error }}</small>
+                {% endfor %}
+            </div>
+            
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary") }}
+                <a href="{{ url_for('admin.ceremonies') }}" class="btn btn-outline-secondary">取消</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0">法會說明</h5>
+    </div>
+    <div class="card-body">
+        <ul>
+            <li>法會名稱：請輸入有意義的法會名稱，例如「蓮師薈供」、「阿彌陀佛法會」等</li>
+            <li>開始/結束日期：設定法會的時間範圍，在此期間內的唸誦記錄會自動關聯到此法會</li>
+            <li>法會描述：可以填寫法會的詳細說明、意義或注意事項</li>
+            <li>啟用狀態：只有啟用的法會才會自動關聯新的唸誦記錄</li>
+        </ul>
+    </div>
+</div>
+{% endblock %} 

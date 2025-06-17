@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>法會管理</h2>
+    <a href="{{ url_for('admin.create_ceremony') }}" class="btn btn-primary">創建新法會</a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if ceremonies.items %}
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>法會名稱</th>
+                        <th>開始日期</th>
+                        <th>結束日期</th>
+                        <th>天數</th>
+                        <th>狀態</th>
+                        <th>唸誦次數</th>
+                        <th>創建時間</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ceremony in ceremonies.items %}
+                    <tr>
+                        <td>{{ ceremony.name }}</td>
+                        <td>{{ ceremony.start_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ ceremony.end_date.strftime('%Y-%m-%d') }}</td>
+                        <td>{{ ceremony.get_days_count() }} 天</td>
+                        <td>
+                            {% if ceremony.is_active %}
+                            <span class="badge badge-success">啟用</span>
+                            {% else %}
+                            <span class="badge badge-secondary">停用</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ ceremony.get_total_count() }}</td>
+                        <td>{{ ceremony.created_at.strftime('%Y-%m-%d') }}</td>
+                        <td>
+                            <a href="{{ url_for('admin.edit_ceremony', id=ceremony.id) }}" class="btn btn-sm btn-outline-primary">編輯</a>
+                            {% if ceremony.get_total_count() == 0 %}
+                            <form method="post" action="{{ url_for('admin.delete_ceremony', id=ceremony.id) }}" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('確定要刪除這個法會嗎？')">刪除</button>
+                            </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 分頁 -->
+        {% if ceremonies.pages > 1 %}
+        <nav aria-label="法會分頁">
+            <ul class="pagination justify-content-center">
+                {% if ceremonies.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.ceremonies', page=ceremonies.prev_num) }}">上一頁</a>
+                </li>
+                {% endif %}
+                
+                {% for page_num in ceremonies.iter_pages() %}
+                {% if page_num %}
+                {% if page_num != ceremonies.page %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.ceremonies', page=page_num) }}">{{ page_num }}</a>
+                </li>
+                {% else %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
+                {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+                {% endfor %}
+                
+                {% if ceremonies.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('admin.ceremonies', page=ceremonies.next_num) }}">下一頁</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        {% else %}
+        <div class="text-center py-5">
+            <p class="text-muted">目前沒有任何法會</p>
+            <a href="{{ url_for('admin.create_ceremony') }}" class="btn btn-primary">創建第一個法會</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="mt-4">
+    <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">返回管理面板</a>
+</div>
+{% endblock %} 

@@ -3,7 +3,9 @@ from flask_login import login_required, current_user
 from app import db
 from app.models.user import User
 from app.models.mantra import Mantra, MantraRecord
+from app.models.ceremony import Ceremony
 from app.forms.mantra import MantraCreateForm, MantraEditForm
+from app.forms.ceremony import CeremonyCreateForm, CeremonyEditForm
 from app.forms.calendar import CalendarForm
 from app.utils.calendar_generator import CalendarGenerator
 from functools import wraps
@@ -284,3 +286,96 @@ def calendar():
         )
     
     return render_template('admin/calendar.html', form=form)
+
+@bp.route('/ceremonies')
+@login_required
+@admin_required
+def ceremonies():
+    """法會管理頁面"""
+    page = request.args.get('page', 1, type=int)
+    ceremonies = Ceremony.query.order_by(Ceremony.created_at.desc()).paginate(
+        page=page, 
+        per_page=current_app.config['RECORDS_PER_PAGE'],
+        error_out=False
+    )
+    
+    return render_template('admin/ceremonies.html',
+                          title='法會管理',
+                          ceremonies=ceremonies)
+
+@bp.route('/ceremony/create', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def create_ceremony():
+    """創建法會頁面"""
+    form = CeremonyCreateForm()
+    
+    if form.validate_on_submit():
+        ceremony = Ceremony(
+            name=form.name.data,
+            description=form.description.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            is_active=form.is_active.data
+        )
+        
+        db.session.add(ceremony)
+        db.session.commit()
+        
+        flash(f'法會 {ceremony.name} 創建成功！', 'success')
+        return redirect(url_for('admin.ceremonies'))
+    
+    return render_template('admin/create_ceremony.html',
+                          title='創建法會',
+                          form=form)
+
+@bp.route('/ceremony/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def edit_ceremony(id):
+    """編輯法會頁面"""
+    ceremony = Ceremony.query.get_or_404(id)
+    form = CeremonyEditForm()
+    
+    if form.validate_on_submit():
+        ceremony.name = form.name.data
+        ceremony.description = form.description.data
+        ceremony.start_date = form.start_date.data
+        ceremony.end_date = form.end_date.data
+        ceremony.is_active = form.is_active.data
+        
+        db.session.commit()
+        
+        flash(f'法會 {ceremony.name} 更新成功！', 'success')
+        return redirect(url_for('admin.ceremonies'))
+    
+    # 預填表單數據
+    form.name.data = ceremony.name
+    form.description.data = ceremony.description
+    form.start_date.data = ceremony.start_date
+    form.end_date.data = ceremony.end_date
+    form.is_active.data = ceremony.is_active
+    
+    return render_template('admin/edit_ceremony.html',
+                          title=f'編輯法會 - {ceremony.name}',
+                          form=form,
+                          ceremony=ceremony)
+
+@bp.route('/ceremony/<int:id>/delete', methods=['POST'])
+@login_required
+@admin_required
+def delete_ceremony(id):
+    """刪除法會"""
+    ceremony = Ceremony.query.get_or_404(id)
+    
+    # 檢查是否有相關的唸誦記錄
+    if ceremony.records.count() > 0:
+        flash(f'無法刪除法會 {ceremony.name}，因為已有相關的唸誦記錄', 'error')
+        return redirect(url_for('admin.ceremonies'))
+    
+    ceremony_name = ceremony.name
+    db.session.delete(ceremony)
+    db.session.commit()
+    
+    flash(f'法會 {ceremony_name} 已刪除', 'success')
+    return redirect(url_for('admin.ceremonies'))

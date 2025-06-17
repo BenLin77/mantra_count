@@ -14,7 +14,7 @@
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item">用戶名: {{ current_user.username }}</li>
                             <li class="list-group-item">電子郵件: {{ current_user.email }}</li>
-                            <li class="list-group-item">註冊時間: {{ current_user.created_at.strftime('%Y-%m-%d') }}</li>
+                            <li class="list-group-item">註冊時間: {{ current_user.get_formatted_created_at() }}</li>
                             <li class="list-group-item">
                                 驗證狀態: 
                                 {% if current_user.is_verified %}
@@ -51,8 +51,8 @@
                                 <tbody>
                                     {% for record in daily_records %}
                                     <tr id="record-row-{{ record.id }}">
-                                        <td>{{ record.record_date.strftime('%Y-%m-%d') }}</td>
-                                        <td>{{ record.mantra.name }}</td>
+                                        <td>{{ record.get_formatted_date() }}</td>
+                                        <td>{{ record.mantra.name }}{% if record.ceremony %} <small class="text-muted">({{ record.ceremony.name }})</small>{% endif %}</td>
                                         <td>
                                             <span id="count-display-{{ record.id }}">{{ record.count }}</span>
                                             <div id="count-edit-{{ record.id }}" style="display: none;">

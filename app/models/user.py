@@ -108,6 +108,12 @@ class User(UserMixin, db.Model):
             return False
         
         return self.verification_code == code
+    
+    def get_formatted_created_at(self):
+        """獲取格式化的註冊時間（包含星期）"""
+        weekdays = ['週一', '週二', '週三', '週四', '週五', '週六', '週日']
+        weekday_name = weekdays[self.created_at.weekday()]
+        return f"{self.created_at.strftime('%Y-%m-%d')} ({weekday_name})"
 
 @login.user_loader
 def load_user(id):

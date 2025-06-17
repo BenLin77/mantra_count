@@ -42,6 +42,7 @@ class MantraRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     mantra_id = db.Column(db.Integer, db.ForeignKey('mantra.id'))
+    ceremony_id = db.Column(db.Integer, db.ForeignKey('ceremony.id'), nullable=True)  # 法會關聯
     count = db.Column(db.Integer, default=0)  # 唸誦次數
     record_date = db.Column(db.Date, default=datetime.utcnow().date)  # 記錄日期
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
@@ -50,9 +51,20 @@ class MantraRecord(db.Model):
     def __repr__(self):
         return f'<唸誦記錄 用戶:{self.user_id} 咒語:{self.mantra_id} 次數:{self.count}>'
     
+    def get_weekday_name(self):
+        """獲取記錄日期的星期名稱"""
+        weekdays = ['週一', '週二', '週三', '週四', '週五', '週六', '週日']
+        return weekdays[self.record_date.weekday()]
+    
+    def get_formatted_date(self):
+        """獲取格式化的日期字符串（包含星期）"""
+        return f"{self.record_date.strftime('%Y-%m-%d')} ({self.get_weekday_name()})"
+    
     @staticmethod
     def get_today_record(user_id, mantra_id):
         """獲取今日的唸誦記錄，如果不存在則創建"""
+        from app.models.ceremony import Ceremony  # 避免循環導入
+        
         today = datetime.utcnow().date()
         record = MantraRecord.query.filter_by(
             user_id=user_id,
@@ -61,9 +73,13 @@ class MantraRecord(db.Model):
         ).first()
         
         if not record:
+            # 檢查當前日期是否有對應的法會
+            current_ceremony = Ceremony.get_current_ceremony()
+            
             record = MantraRecord(
                 user_id=user_id,
                 mantra_id=mantra_id,
+                ceremony_id=current_ceremony.id if current_ceremony else None,
                 count=0,
                 record_date=today
             )

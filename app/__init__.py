@@ -35,4 +35,4 @@ def create_app(config_class=Config):
     
     return app
 
-from app.models import user, mantra
+from app.models import user, mantra, ceremony
