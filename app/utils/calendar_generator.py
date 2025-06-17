@@ -79,6 +79,15 @@ class CalendarGenerator:
         return special_dates
     
     @staticmethod
+    def set_cell_text_with_font(cell, text, font_size=9):
+        """設置儲存格文字和字體大小"""
+        cell.paragraphs[0].clear()
+        run = cell.paragraphs[0].add_run(text)
+        run.font.size = Pt(font_size)
+        cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
+        cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+
+    @staticmethod
     def create_calendar_docx(year, filename):
         """創建行事曆 docx 檔案"""
         doc = Document()
@@ -158,35 +167,51 @@ class CalendarGenerator:
         # 獲取特殊日期
         special_dates = CalendarGenerator.get_all_special_dates(year)
         
-        # 填充蓮師薈供日期
-        lotus_row = 4
+        # 組織蓮師薈供和空行母薈供日期
+        lotus_dates_by_month = {}
+        dakini_dates_by_month = {}
+        
+        # 收集蓮師薈供日期
         for date_obj in special_dates['lotus_days']:
             month = date_obj.month
-            cell = table.cell(lotus_row, month)
+            if month not in lotus_dates_by_month:
+                lotus_dates_by_month[month] = []
             
-            # 如果單元格已有內容，則添加新行
-            if cell.text:
-                cell.text += f'\n{date_obj.day}日'
-            else:
-                cell.text = f'{date_obj.day}日'
+            # 格式化日期顯示（包含星期）
+            weekdays = ['一', '二', '三', '四', '五', '六', '日']
+            weekday = weekdays[date_obj.weekday()]
+            date_text = f'{date_obj.day}日({weekday})'
+            lotus_dates_by_month[month].append(date_text)
+        
+        # 收集空行母薈供日期
+        for date_obj in special_dates['dakini_days']:
+            month = date_obj.month
+            if month not in dakini_dates_by_month:
+                dakini_dates_by_month[month] = []
             
-            cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-            cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+            # 格式化日期顯示（包含星期）
+            weekdays = ['一', '二', '三', '四', '五', '六', '日']
+            weekday = weekdays[date_obj.weekday()]
+            date_text = f'{date_obj.day}日({weekday})'
+            dakini_dates_by_month[month].append(date_text)
+        
+        # 填充蓮師薈供日期
+        lotus_row = 4
+        for month in range(1, 13):
+            if month in lotus_dates_by_month:
+                dates = lotus_dates_by_month[month]
+                cell = table.cell(lotus_row, month)
+                text_content = ' '.join(dates)  # 用空格分隔，保持在同一行
+                CalendarGenerator.set_cell_text_with_font(cell, text_content, 9)
         
         # 填充空行母薈供日期
         dakini_row = 5
-        for date_obj in special_dates['dakini_days']:
-            month = date_obj.month
-            cell = table.cell(dakini_row, month)
-            
-            # 如果單元格已有內容，則添加新行
-            if cell.text:
-                cell.text += f'\n{date_obj.day}日'
-            else:
-                cell.text = f'{date_obj.day}日'
-            
-            cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-            cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+        for month in range(1, 13):
+            if month in dakini_dates_by_month:
+                dates = dakini_dates_by_month[month]
+                cell = table.cell(dakini_row, month)
+                text_content = ' '.join(dates)  # 用空格分隔，保持在同一行
+                CalendarGenerator.set_cell_text_with_font(cell, text_content, 9)
         
         # 使用法會輪替系統填充週五日期
         ceremony_assignments = {}
@@ -229,9 +254,13 @@ class CalendarGenerator:
                 dates = month_ceremony_dates[month][ceremony_name]
                 if dates:
                     cell = table.cell(row, month)
-                    cell.text = '\n'.join(dates)
-                    cell.paragraphs[0].alignment = WD_ALIGN_PARAGRAPH.CENTER
-                    cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+                    # 如果只有一個日期，直接顯示；如果有多個，則換行顯示
+                    if len(dates) == 1:
+                        text_content = dates[0]
+                    else:
+                        text_content = '\n'.join(dates)
+                    
+                    CalendarGenerator.set_cell_text_with_font(cell, text_content, 9)
         
         # 添加頁腳說明
         footer = doc.add_paragraph()
