@@ -44,6 +44,53 @@
                     </div>
                 </div>
             </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.calendar_type.label(class="form-label") }}
+                        {{ form.calendar_type(class="form-control") }}
+                        <small class="form-text text-muted">選擇日期的基準：西元或藏曆。</small>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.recurrence.label(class="form-label") }}
+                        {{ form.recurrence(class="form-control") }}
+                        <small class="form-text text-muted">選擇是否每月或每年重複；不重複則使用週五輪替系統。</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.month.label(class="form-label") }}
+                        {{ form.month(class="form-control", placeholder="1-12（僅每年/西元或每年/藏曆使用）") }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.day.label(class="form-label") }}
+                        {{ form.day(class="form-control", placeholder="1-31（西元使用）") }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.lunar_month.label(class="form-label") }}
+                        {{ form.lunar_month(class="form-control", placeholder="1-12（僅每年/藏曆使用）") }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.lunar_day.label(class="form-label") }}
+                        {{ form.lunar_day(class="form-control", placeholder="1-30（藏曆使用）") }}
+                    </div>
+                </div>
+            </div>
             
             <div class="form-group form-check">
                 {{ form.is_active(class="form-check-input") }}

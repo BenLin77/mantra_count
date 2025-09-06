@@ -100,27 +100,29 @@
                 <tr class="separator-row">
                     <td colspan="13"></td>
                 </tr>
-                
-                <!-- 蓮師會供安行每月實修年度法會 -->
+
+                <!-- 蓮師薈供（藏曆初十） -->
                 <tr>
-                    <td class="item-cell special-ceremony">
-                        蓮師會<br>供<br>安行每<br>月實修<br>年度法<br>會
-                    </td>
+                    <td class="item-cell special-ceremony">蓮師<br>薈供</td>
                     {% for month in range(1, 13) %}
                     <td class="date-cell">
-                        <!-- 暫時顯示示例，可以根據需要調整 -->
-                        {% if month == 1 %}9日{% endif %}
-                        {% if month == 2 %}7日{% endif %}
-                        {% if month == 3 %}9日{% endif %}
-                        {% if month == 4 %}7日{% endif %}
-                        {% if month == 5 %}7日<br><small>(三)</small><br><br>22日<br><small>(四)</small>{% endif %}
-                        {% if month == 6 %}5日{% endif %}
-                        {% if month == 7 %}4日{% endif %}
-                        {% if month == 8 %}3日{% endif %}
-                        {% if month == 9 %}1日{% endif %}
-                        {% if month == 10 %}1日<br>30日{% endif %}
-                        {% if month == 11 %}29日{% endif %}
-                        {% if month == 12 %}29日{% endif %}
+                        {% set dates = lotus_dates_by_month.get(month, []) %}
+                        {% for d in dates %}
+                        <div class="date-item">{{ d }}</div>
+                        {% endfor %}
+                    </td>
+                    {% endfor %}
+                </tr>
+
+                <!-- 空行母薈供（藏曆二十五） -->
+                <tr>
+                    <td class="item-cell special-ceremony">空行<br>母薈<br>供</td>
+                    {% for month in range(1, 13) %}
+                    <td class="date-cell">
+                        {% set dates = dakini_dates_by_month.get(month, []) %}
+                        {% for d in dates %}
+                        <div class="date-item">{{ d }}</div>
+                        {% endfor %}
                     </td>
                     {% endfor %}
                 </tr>

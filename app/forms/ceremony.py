@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, DateField, BooleanField, SubmitField
+from wtforms import StringField, TextAreaField, DateField, BooleanField, SubmitField, SelectField, IntegerField
 from wtforms.validators import DataRequired, Length, Optional, ValidationError
 from datetime import datetime
 
@@ -17,6 +17,15 @@ class CeremonyCreateForm(FlaskForm):
         DataRequired(message='請選擇結束日期')
     ], default=datetime.today)
     is_active = BooleanField('啟用法會', default=True)
+    # 新增欄位
+    calendar_type = SelectField('曆法', choices=[('gregorian', '西元'), ('lunar', '藏曆')], default='gregorian')
+    recurrence = SelectField('重複', choices=[('none', '不重複'), ('monthly', '每月'), ('yearly', '每年')], default='none')
+    # 公曆
+    month = IntegerField('月份(西元)', validators=[Optional()])
+    day = IntegerField('日期(西元)', validators=[Optional()])
+    # 藏曆
+    lunar_month = IntegerField('月份(藏曆)', validators=[Optional()])
+    lunar_day = IntegerField('日期(藏曆)', validators=[Optional()])
     submit = SubmitField('創建法會')
     
     def validate_end_date(self, field):
@@ -37,6 +46,15 @@ class CeremonyEditForm(FlaskForm):
         DataRequired(message='請選擇結束日期')
     ])
     is_active = BooleanField('啟用法會')
+    # 新增欄位
+    calendar_type = SelectField('曆法', choices=[('gregorian', '西元'), ('lunar', '藏曆')])
+    recurrence = SelectField('重複', choices=[('none', '不重複'), ('monthly', '每月'), ('yearly', '每年')])
+    # 公曆
+    month = IntegerField('月份(西元)', validators=[Optional()])
+    day = IntegerField('日期(西元)', validators=[Optional()])
+    # 藏曆
+    lunar_month = IntegerField('月份(藏曆)', validators=[Optional()])
+    lunar_day = IntegerField('日期(藏曆)', validators=[Optional()])
     submit = SubmitField('更新法會')
     
     def validate_end_date(self, field):

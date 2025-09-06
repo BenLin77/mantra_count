@@ -10,6 +10,17 @@ class Ceremony(db.Model):
     end_date = db.Column(db.Date, nullable=False)  # 結束日期
     is_active = db.Column(db.Boolean, default=True)  # 是否啟用
     ceremony_order = db.Column(db.Integer, default=0)  # 法會順序，用於輪替
+    # 新增：重複與曆法設定
+    # calendar_type: 'gregorian' 或 'lunar'
+    calendar_type = db.Column(db.String(20), default='gregorian')
+    # recurrence: 'monthly' 或 'yearly'，空值代表不套用自動重複（沿用輪替系統）
+    recurrence = db.Column(db.String(20), default=None)
+    # 公曆用欄位：每年(或每月)的月份與日期
+    month = db.Column(db.Integer)  # 1-12（yearly 使用），monthly 可為空
+    day = db.Column(db.Integer)    # 1-31（monthly/yearly 使用）
+    # 藏曆用欄位：每年(或每月)的藏曆月份與日期
+    lunar_month = db.Column(db.Integer)  # 1-12（yearly 使用），monthly 可為空
+    lunar_day = db.Column(db.Integer)    # 1-30（monthly/yearly 使用）
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     # 與唸誦記錄的關聯

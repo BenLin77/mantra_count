@@ -326,7 +326,13 @@ def create_ceremony():
             description=form.description.data,
             start_date=form.start_date.data,
             end_date=form.end_date.data,
-            is_active=form.is_active.data
+            is_active=form.is_active.data,
+            calendar_type=(form.calendar_type.data or 'gregorian'),
+            recurrence=(None if form.recurrence.data == 'none' else form.recurrence.data),
+            month=form.month.data,
+            day=form.day.data,
+            lunar_month=form.lunar_month.data,
+            lunar_day=form.lunar_day.data
         )
         
         db.session.add(ceremony)
@@ -353,6 +359,12 @@ def edit_ceremony(id):
         ceremony.start_date = form.start_date.data
         ceremony.end_date = form.end_date.data
         ceremony.is_active = form.is_active.data
+        ceremony.calendar_type = form.calendar_type.data or 'gregorian'
+        ceremony.recurrence = None if form.recurrence.data == 'none' else form.recurrence.data
+        ceremony.month = form.month.data
+        ceremony.day = form.day.data
+        ceremony.lunar_month = form.lunar_month.data
+        ceremony.lunar_day = form.lunar_day.data
         
         db.session.commit()
         
@@ -365,6 +377,12 @@ def edit_ceremony(id):
     form.start_date.data = ceremony.start_date
     form.end_date.data = ceremony.end_date
     form.is_active.data = ceremony.is_active
+    form.calendar_type.data = ceremony.calendar_type or 'gregorian'
+    form.recurrence.data = ceremony.recurrence or 'none'
+    form.month.data = ceremony.month
+    form.day.data = ceremony.day
+    form.lunar_month.data = ceremony.lunar_month
+    form.lunar_day.data = ceremony.lunar_day
     
     return render_template('admin/edit_ceremony.html',
                           title=f'編輯法會 - {ceremony.name}',
@@ -397,7 +415,7 @@ def ceremony_calendar():
     """法會行事曆"""
     year = request.args.get('year', datetime.now().year, type=int)
     
-    # 生成全年的法會安排
+    # 生成全年的法會安排（週五輪替）
     yearly_schedule = {}
     
     for month in range(1, 13):
@@ -406,8 +424,22 @@ def ceremony_calendar():
     
     # 獲取所有法會
     ceremonies = Ceremony.query.filter_by(is_active=True).order_by(Ceremony.ceremony_order).all()
-    
-    return render_template('admin/ceremony_calendar_simple.html', 
-                         yearly_schedule=yearly_schedule,
-                         ceremonies=ceremonies,
-                         year=year)
+
+    # 計算當年度的蓮師薈供（藏曆10）與空行母薈供（藏曆25）
+    special_dates = CalendarGenerator.get_all_special_dates(year)
+    lotus_dates_by_month = {}
+    dakini_dates_by_month = {}
+    weekdays = ['一', '二', '三', '四', '五', '六', '日']
+    for d in special_dates['lotus_days']:
+        lotus_dates_by_month.setdefault(d.month, []).append(f"{d.day}日({weekdays[d.weekday()]})")
+    for d in special_dates['dakini_days']:
+        dakini_dates_by_month.setdefault(d.month, []).append(f"{d.day}日({weekdays[d.weekday()]})")
+
+    return render_template(
+        'admin/ceremony_calendar_simple.html',
+        yearly_schedule=yearly_schedule,
+        ceremonies=ceremonies,
+        year=year,
+        lotus_dates_by_month=lotus_dates_by_month,
+        dakini_dates_by_month=dakini_dates_by_month
+    )

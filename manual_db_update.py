@@ -58,17 +58,41 @@ def manual_db_update():
                 logger.info("ceremony表創建成功")
             else:
                 logger.info("ceremony表已存在")
-                # 檢查是否需要添加ceremony_order列
+                # 檢查是否需要添加新增欄位
                 with db.engine.connect() as connection:
                     result = connection.execute(text("PRAGMA table_info(ceremony)"))
                     ceremony_columns = [row[1] for row in result.fetchall()]
-                    
+
+                # ceremony_order
                 if 'ceremony_order' not in ceremony_columns:
                     logger.info("添加ceremony_order列到ceremony表...")
                     with db.engine.connect() as connection:
                         connection.execute(text("ALTER TABLE ceremony ADD COLUMN ceremony_order INTEGER DEFAULT 0"))
                         connection.commit()
                     logger.info("ceremony_order列添加成功")
+
+                # 新增重複與曆法欄位
+                add_cols = []
+                if 'calendar_type' not in ceremony_columns:
+                    add_cols.append("ADD COLUMN calendar_type VARCHAR(20) DEFAULT 'gregorian'")
+                if 'recurrence' not in ceremony_columns:
+                    add_cols.append("ADD COLUMN recurrence VARCHAR(20)")
+                if 'month' not in ceremony_columns:
+                    add_cols.append("ADD COLUMN month INTEGER")
+                if 'day' not in ceremony_columns:
+                    add_cols.append("ADD COLUMN day INTEGER")
+                if 'lunar_month' not in ceremony_columns:
+                    add_cols.append("ADD COLUMN lunar_month INTEGER")
+                if 'lunar_day' not in ceremony_columns:
+                    add_cols.append("ADD COLUMN lunar_day INTEGER")
+
+                if add_cols:
+                    logger.info(f"添加欄位到ceremony表: {add_cols}")
+                    with db.engine.connect() as connection:
+                        for clause in add_cols:
+                            connection.execute(text(f"ALTER TABLE ceremony {clause}"))
+                        connection.commit()
+                    logger.info("新增欄位添加完成")
             
             # 檢查mantra_record表
             if 'mantra_record' not in existing_tables:

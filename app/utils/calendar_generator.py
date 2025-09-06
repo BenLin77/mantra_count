@@ -97,6 +97,67 @@ class CalendarGenerator:
             current_date += delta
         
         return special_dates
+
+    @staticmethod
+    def generate_recurring_dates(year):
+        """根據 Ceremony 設定產生本年度的重複法會日期
+
+        支援：
+        - calendar_type: 'gregorian' 或 'lunar'
+        - recurrence: 'monthly' 或 'yearly'
+        - 對應欄位：month/day 或 lunar_month/lunar_day
+
+        回傳：
+        {
+            ceremony_name: { month(int 1-12): [date(date), ...] }
+        }
+        """
+        results = {}
+        active = Ceremony.query.filter_by(is_active=True).all()
+        # 預先列舉全年度日期，方便藏曆轉換與過濾
+        start_date = date(year, 1, 1)
+        end_date = date(year, 12, 31)
+        delta = timedelta(days=1)
+        current = start_date
+
+        # 建立快取，避免重複換算
+        lunar_cache = {}
+
+        while current <= end_date:
+            lunar = None
+            if LUNARDATE_AVAILABLE:
+                try:
+                    key = (current.year, current.month, current.day)
+                    if key not in lunar_cache:
+                        lunar_cache[key] = lunardate.LunarDate.fromSolarDate(*key)
+                    lunar = lunar_cache[key]
+                except Exception:
+                    lunar = None
+
+            for c in active:
+                if not c.recurrence or not c.calendar_type:
+                    continue
+                # 初始化容器
+                results.setdefault(c.name, {})
+
+                if c.calendar_type == 'gregorian':
+                    if c.recurrence == 'monthly':
+                        if c.day and current.day == c.day:
+                            results[c.name].setdefault(current.month, []).append(current)
+                    elif c.recurrence == 'yearly':
+                        if c.month and c.day and current.month == c.month and current.day == c.day:
+                            results[c.name].setdefault(current.month, []).append(current)
+                elif c.calendar_type == 'lunar' and lunar is not None:
+                    if c.recurrence == 'monthly':
+                        if c.lunar_day and lunar.day == c.lunar_day:
+                            results[c.name].setdefault(current.month, []).append(current)
+                    elif c.recurrence == 'yearly':
+                        if c.lunar_month and c.lunar_day and lunar.month == c.lunar_month and lunar.day == c.lunar_day:
+                            results[c.name].setdefault(current.month, []).append(current)
+
+            current += delta
+
+        return results
     
     @staticmethod
     def set_cell_text_with_font(cell, text, font_size=9):
@@ -221,6 +282,7 @@ class CalendarGenerator:
         
         # 獲取特殊日期
         special_dates = CalendarGenerator.get_all_special_dates(year)
+        recurring = CalendarGenerator.generate_recurring_dates(year)
         
         # 組織蓮師薈供和空行母薈供日期
         lotus_dates_by_month = {}
