@@ -197,11 +197,11 @@ def send_verification_email(temp_user):
         )
         
         result = send_email(
-            subject='【噶陀十方尊勝佛學會】請驗證您的電子郵件',
+            subject='【台北噶陀十方尊勝佛學會】請驗證您的電子郵件',
             recipients=[temp_user.email],
             text_body=f'''親愛的 {temp_user.username}：
 
-感謝您註冊噶陀十方尊勝佛學會持咒計數系統。
+感謝您註冊台北噶陀十方尊勝佛學會持咒計數系統。
 
 請點擊以下連結驗證您的電子郵件：
 {verification_url}
@@ -209,15 +209,15 @@ def send_verification_email(temp_user):
 如果您沒有註冊帳號，請忽略此郵件。
 
 祝福您
-噶陀十方尊勝佛學會
+台北噶陀十方尊勝佛學會
 ''',
             html_body=f'''
 <p>親愛的 {temp_user.username}：</p>
-<p>感謝您註冊噶陀十方尊勝佛學會持咒計數系統。</p>
+<p>感謝您註冊台北噶陀十方尊勝佛學會持咒計數系統。</p>
 <p>請點擊以下連結驗證您的電子郵件：</p>
 <p><a href="{verification_url}">驗證電子郵件</a></p>
 <p>如果您沒有註冊帳號，請忽略此郵件。</p>
-<p>祝福您<br>噶陀十方尊勝佛學會</p>
+<p>祝福您<br>台北噶陀十方尊勝佛學會</p>
 '''
         )
         
@@ -314,7 +314,7 @@ def send_password_reset_email(user):
         print(f"為用戶 {user.username} ({user.email}) 生成密碼重設令牌", file=sys.stderr)
         
         return send_email(
-            subject='【噶陀十方尊勝佛學會】重設您的密碼',
+            subject='【台北噶陀十方尊勝佛學會】重設您的密碼',
             recipients=[user.email],
             text_body=f'''親愛的 {user.username}：
 
@@ -328,7 +328,7 @@ def send_password_reset_email(user):
 
 祝您修行順利！
 
-噶陀十方尊勝佛學會持咒統計團隊''',
+台北噶陀十方尊勝佛學會持咒統計團隊''',
             html_body=f'''
 <p>親愛的 {user.username}：</p>
 <p>您收到此郵件是因為您請求重設密碼。</p>
@@ -336,7 +336,7 @@ def send_password_reset_email(user):
 <p><a href="{url_for('auth.reset_password', token=token, _external=True)}">重設密碼</a></p>
 <p>如果您沒有請求重設密碼，請忽略此郵件。</p>
 <p>祝您修行順利！</p>
-<p>噶陀十方尊勝佛學會持咒統計團隊</p>'''
+<p>台北噶陀十方尊勝佛學會持咒統計團隊</p>'''
         )
     except Exception as e:
         print(f"準備發送密碼重設郵件時發生錯誤: {str(e)}", file=sys.stderr)

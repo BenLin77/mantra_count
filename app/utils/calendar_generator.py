@@ -1,13 +1,29 @@
-from docx import Document
-from docx.shared import Pt, Cm, RGBColor
-from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml.ns import nsdecls
-from docx.oxml import parse_xml
-import lunardate
+try:
+    # 嘗試導入 docx 相關模組
+    from docx import Document
+    from docx.shared import Pt, Cm, RGBColor
+    from docx.enum.table import WD_TABLE_ALIGNMENT, WD_CELL_VERTICAL_ALIGNMENT
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml.ns import nsdecls
+    from docx.oxml import parse_xml
+    DOCX_AVAILABLE = True
+except ImportError:
+    # 如果導入失敗，設置標誌
+    DOCX_AVAILABLE = False
+
+try:
+    # 嘗試導入 lunardate
+    import lunardate
+    LUNARDATE_AVAILABLE = True
+except ImportError:
+    # 如果導入失敗，設置標誌
+    LUNARDATE_AVAILABLE = False
+
 from datetime import datetime, timedelta, date
 import calendar
 from app.models.ceremony import Ceremony
+import os
+import json
 
 class CalendarGenerator:
     """行事曆生成器"""
@@ -15,6 +31,10 @@ class CalendarGenerator:
     @staticmethod
     def get_lunar_date(solar_date):
         """將公曆日期轉換為藏曆日期"""
+        if not LUNARDATE_AVAILABLE:
+            # 如果沒有 lunardate 套件，返回 None
+            return None
+            
         try:
             lunar = lunardate.LunarDate.fromSolarDate(
                 solar_date.year, solar_date.month, solar_date.day
@@ -90,6 +110,41 @@ class CalendarGenerator:
     @staticmethod
     def create_calendar_docx(year, filename):
         """創建行事曆 docx 檔案"""
+        # 檢查是否有 docx 套件
+        if not DOCX_AVAILABLE:
+            # 如果沒有 docx 套件，創建一個 JSON 文件作為替代
+            calendar_data = {
+                "title": f'台北噶陀十方尊勝佛學會 {year - 1911} 年度共修、法會活動行程表',
+                "subtitle": f'{year - 1911} 年度固定共修 / 年度法會行事曆',
+                "headers": ['項目', '一月', '二月', '三月', '四月', '五月', '六月', 
+                           '七月', '八月', '九月', '十月', '十一月', '十二月'],
+                "row_titles": [
+                    '大圓滿前行共修 上師文集導讀',
+                    '數度母共修 上師文集導讀',
+                    '破瓦法共修 上師文集導讀',
+                    '蓮師薈供',
+                    '空行母薈供',
+                    '年度法會'
+                ],
+                "special_dates": CalendarGenerator.get_all_special_dates(year),
+                "footer": '歡迎大家踴躍參加，學習資糧，同霑法益。',
+                "footnote": '備註：年度共修及法會暫定，若遇不可抗力因素變更，請以台北中心公告為主。'
+            }
+            
+            # 將日期對象轉換為字符串
+            for date_type, dates in calendar_data["special_dates"].items():
+                calendar_data["special_dates"][date_type] = [
+                    {"year": d.year, "month": d.month, "day": d.day} for d in dates
+                ]
+            
+            # 保存為 JSON 文件
+            json_filename = filename.replace('.docx', '.json')
+            with open(json_filename, 'w', encoding='utf-8') as f:
+                json.dump(calendar_data, f, ensure_ascii=False, indent=2)
+            
+            return json_filename
+        
+        # 如果有 docx 套件，創建 Word 文件
         doc = Document()
         
         # 設置文檔為橫向
@@ -101,7 +156,7 @@ class CalendarGenerator:
         section.bottom_margin = Cm(2)
         
         # 添加標題
-        title = doc.add_heading(f'台北市噶陀十方善聯佛學會 {year - 1911} 年度共修、法會活動行程表', level=1)
+        title = doc.add_heading(f'台北噶陀十方尊勝佛學會 {year - 1911} 年度共修、法會活動行程表', level=1)
         title.alignment = WD_ALIGN_PARAGRAPH.CENTER
         
         # 添加副標題

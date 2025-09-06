@@ -272,17 +272,27 @@ def calendar():
         
         # 創建臨時文件
         temp_dir = tempfile.gettempdir()
-        filename = os.path.join(temp_dir, f'行事曆_{year-1911}年.docx')
+        docx_filename = os.path.join(temp_dir, f'行事曆_{year-1911}年.docx')
         
         # 生成行事曆文件
-        CalendarGenerator.create_calendar_docx(year, filename)
+        result_filename = CalendarGenerator.create_calendar_docx(year, docx_filename)
+        
+        # 檢查返回的檔案類型
+        if result_filename.endswith('.json'):
+            # 如果是 JSON 檔案，設置相應的 MIME 類型
+            mime_type = 'application/json'
+            download_name = f'行事曆_{year-1911}年.json'
+        else:
+            # 如果是 DOCX 檔案，設置相應的 MIME 類型
+            mime_type = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            download_name = f'行事曆_{year-1911}年.docx'
         
         # 發送文件
         return send_file(
-            filename,
+            result_filename,
             as_attachment=True,
-            download_name=f'行事曆_{year-1911}年.docx',
-            mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            download_name=download_name,
+            mimetype=mime_type
         )
     
     return render_template('admin/calendar.html', form=form)

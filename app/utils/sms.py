@@ -59,7 +59,7 @@ def send_verification_code(phone_number, code):
         if template_id:
             # 使用模板 ID 發送
             request_body = {
-                "from": "噶陀十方尊勝佛學會",  # 發送者名稱
+                "from": "台北噶陀十方尊勝佛學會",  # 發送者名稱
                 "to": [international_phone],
                 "request_id": request_id,
                 "body": {
@@ -72,11 +72,11 @@ def send_verification_code(phone_number, code):
         else:
             # 使用純文字發送
             request_body = {
-                "from": "噶陀十方尊勝佛學會",  # 發送者名稱
+                "from": "台北噶陀十方尊勝佛學會",  # 發送者名稱
                 "to": [international_phone],
                 "request_id": request_id,
                 "body": {
-                    "content": f"【噶陀十方尊勝佛學會】您的驗證碼是：{code}，10分鐘內有效，請勿洩露給他人，祝您修行順利，吉祥如意。"
+                    "content": f"【台北噶陀十方尊勝佛學會】您的驗證碼是：{code}，10分鐘內有效，請勿洩露給他人，祝您修行順利，吉祥如意。"
                 }
             }
         
